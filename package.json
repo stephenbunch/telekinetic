@@ -1,0 +1,19 @@
+{
+  "name": "telekinetic",
+  "version": "0.1.0",
+  "description": "Reactive architecture for React-like components.",
+  "main": "lib/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stephenbunch/telekinetic.git"
+  },
+  "author": "Stephen Bunch",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stephenbunch/telekinetic/issues"
+  },
+  "homepage": "https://github.com/stephenbunch/telekinetic#readme"
+}

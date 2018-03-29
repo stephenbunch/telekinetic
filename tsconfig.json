@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "removeComments": true,
+    "preserveConstEnums": true,
+    "sourceMap": true,
+    "target": "ES6",
+    "strictPropertyInitialization": true,
+    "strictNullChecks": true,
+    "noImplicitReturns": true
+  },
+}
