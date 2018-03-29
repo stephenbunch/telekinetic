@@ -1,8 +1,5 @@
-interface Shape {}
-
-interface ShapeClass<T> {
-    new(): T;
-}
+import Shape from './Shape';
+import ShapeClass from './ShapeClass';
 
 interface ProxyClass<T> {
   new(source?: T): T;
@@ -19,7 +16,7 @@ const __NESTED_PROXY_CLASSES = Symbol('telekinetic.proxy.__nested_proxy_classes'
 
 const IS_PROXY = Symbol('telekinetic.proxy.is_proxy');
 
-function getValue(obj: Object, key: string): any {
+function getValue(obj: { [index: string]: any }, key: string): any {
   const value = obj[key];
   if (typeof value === 'function') {
     return value.bind(obj);
@@ -54,7 +51,7 @@ function getProxyClass<T extends Shape>(shapeClass: ShapeClass<T>): ProxyClass<T
       super();
       if (source) {
         for (const key of keys) {
-          this[key] = getValue(source, key);
+          (this as { [index: string]: any })[key] = getValue(source, key);
         }
       }
       this[INITIALIZED] = true;
@@ -80,10 +77,10 @@ function getProxyClass<T extends Shape>(shapeClass: ShapeClass<T>): ProxyClass<T
   }
   for (const key of keys) {
     Object.defineProperty(Proxy.prototype, key, {
-      get() {
+      get(this: Proxy) {
         return this[VALUES].get(key);
       },
-      set(value) {
+      set(this: Proxy, value) {
         if (value !== this[VALUES].get(key)) {
           this[VALUES].set(key, value);
           if (this[INITIALIZED]) {
@@ -97,7 +94,7 @@ function getProxyClass<T extends Shape>(shapeClass: ShapeClass<T>): ProxyClass<T
 }
 
 class ReactiveProxyFactory<T extends Shape> {
-  proxyClass: ProxyClass<T>;
+  private proxyClass: ProxyClass<T>;
 
   constructor(shapeClass: ShapeClass<T>) {
     this.proxyClass = getProxyClass(shapeClass);
@@ -111,12 +108,14 @@ class ReactiveProxyFactory<T extends Shape> {
   }
 }
 
-class Foo {
-  bar = 'hello';
-}
+export default ReactiveProxyFactory;
 
-const factory = new ReactiveProxyFactory(Foo);
-const foo = factory.create();
-console.log(foo.bar);
-foo.bar = 'world';
-console.log(foo.bar);
+// class Foo {
+//   bar = 'hello';
+// }
+
+// const factory = new ReactiveProxyFactory(Foo);
+// const foo = factory.create();
+// console.log(foo.bar);
+// foo.bar = 'world';
+// console.log(foo.bar);

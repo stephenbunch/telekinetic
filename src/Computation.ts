@@ -1,5 +1,6 @@
 import Autorun from './Autorun';
 import IAutorun from './IAutorun';
+import RunFunction from './RunFunction';
 
 export default class Computation {
   autorun: IAutorun | null;
@@ -12,20 +13,20 @@ export default class Computation {
     this.stack = stack;
   }
 
-  get isAlive() {
+  get isAlive(): boolean {
     return this.autorun !== null;
   }
 
-  continue(func) {
+  continue<TResult>(callback: () => TResult): TResult | undefined {
     if (this.autorun) {
-      return this.autorun.exec(func);
+      return this.autorun.exec(callback);
     }
     return undefined;
   }
 
-  fork(func) {
+  fork<TRunResult>(runFunc: RunFunction<TRunResult>): TRunResult | undefined {
     if (this.autorun) {
-      const autorun = new Autorun(func, this);
+      const autorun = new Autorun(runFunc, this);
       try {
         return autorun.rerun();
       } catch (err) {
@@ -36,7 +37,7 @@ export default class Computation {
     return undefined;
   }
 
-  dispose() {
+  dispose(): void {
     this.autorun = null;
     this.stack = null;
   }

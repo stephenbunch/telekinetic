@@ -5,8 +5,10 @@
     "preserveConstEnums": true,
     "sourceMap": true,
     "target": "ES6",
-    "strictPropertyInitialization": true,
-    "strictNullChecks": true,
-    "noImplicitReturns": true
-  },
+    "noImplicitReturns": true,
+    "strict": true,
+    "declaration": true,
+    "declarationDir": "./lib",
+    "outDir": "./lib",
+  }
 }
