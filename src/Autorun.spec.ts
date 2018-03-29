@@ -372,7 +372,8 @@ describe('the exclude function', () => {
   });
 });
 
-it('should throw an error when a circular dependency is detected between two computations', () => {
+it('should throw an error when a circular dependency is detected between two ' +
+'computations', () => {
   const dep1 = new Dependency();
   const dep2 = new Dependency();
 
@@ -391,12 +392,14 @@ it('should throw an error when a circular dependency is detected between two com
   auto1.dispose();
 });
 
-it('should throw an error when a circular dependency is detected between two async computations', async () => {
+it('should throw an error when a circular dependency is detected between two ' +
+'async computations', async () => {
   const dep1 = new Dependency();
   const dep2 = new Dependency();
 
   // 1. run auto1
-  // 2. run auto2 -> dep1 changed -> run auto1 -> dep2 changed -> run auto2 -> dep1 changed -> error!
+  // 2. run auto2 -> dep1 changed -> run auto1 -> dep2 changed -> run auto2
+  //        -> dep1 changed -> error!
 
   const auto1 = Autorun.start(async comp => {
     dep1.depend();
@@ -429,7 +432,8 @@ it('should throw an error when a circular dependency is detected between two asy
   auto2.dispose();
 });
 
-it('should throw an error when a circular dependency is detected between multiple segments of the same async computation', async () => {
+it('should throw an error when a circular dependency is detected between ' +
+'multiple segments of the same async computation', async () => {
   const dep = new Dependency();
   const autorun = Autorun.start(async comp => {
     dep.depend();
@@ -449,7 +453,8 @@ it('should throw an error when a circular dependency is detected between multipl
   autorun.dispose();
 });
 
-it('should throw an error when a circular dependency is detected between two forks', () => {
+it('should throw an error when a circular dependency is detected between two ' +
+'forks', () => {
   const dep1 = new Dependency();
   const dep2 = new Dependency();
 

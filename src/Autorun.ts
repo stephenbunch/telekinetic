@@ -36,7 +36,8 @@ class Autorun<T> implements IAutorun {
     return currentAutorun;
   }
 
-  static start<TRunResult>(runFunc: RunFunction<TRunResult>): Autorun<TRunResult> {
+  static start<TRunResult>(
+    runFunc: RunFunction<TRunResult>): Autorun<TRunResult> {
     const autorun = new Autorun<TRunResult>(runFunc);
     autorun.rerun();
     return autorun;
@@ -51,7 +52,8 @@ class Autorun<T> implements IAutorun {
     }
   }
 
-  static onceAsync<TResult>(callback: () => Promise<TResult>): Promise<TResult> {
+  static onceAsync<TResult>(
+    callback: () => Promise<TResult>): Promise<TResult> {
     suspend();
     return callback().then(result => {
       resume();
@@ -70,7 +72,8 @@ class Autorun<T> implements IAutorun {
     return result;
   }
 
-  constructor(runFunc: RunFunction<T>, parentComputation: Computation | null = null) {
+  constructor(runFunc: RunFunction<T>,
+    parentComputation: Computation | null = null) {
     this.id = ++uid;
     this.func = runFunc;
     this.computation = null;
@@ -106,7 +109,8 @@ class Autorun<T> implements IAutorun {
           if (this.computation) {
             this.computation.dispose();
           }
-          this.computation = new Computation(this, isFirstRun, autorunStack.slice());
+          this.computation = new Computation(
+            this, isFirstRun, autorunStack.slice());
           try {
             this.value = this.func!(this.computation);
           } catch (err) {
