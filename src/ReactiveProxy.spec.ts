@@ -3,7 +3,7 @@ import ReactiveProxy from './ReactiveProxy';
 
 describe('ReactiveProxy', () => {
   it('should setup dependencies', () => {
-    const obj = ReactiveProxy.create({foo: 1});
+    const obj = ReactiveProxy.from({foo: 1});
     let result = 0;
     const autorun = Autorun.start(() => {
       result = obj.foo;
@@ -22,7 +22,7 @@ describe('ReactiveProxy', () => {
       bar = new A();
       baz = new A();
     }
-    const obj = ReactiveProxy.create(new B());
+    const obj = ReactiveProxy.from(new B());
     obj.bar.foo = 2;
     obj.baz = obj.bar;
     expect(obj.bar).toBe(obj.baz);
@@ -36,7 +36,7 @@ describe('ReactiveProxy', () => {
     class B {
       foo = new A();
     }
-    const obj = ReactiveProxy.create(new B());
+    const obj = ReactiveProxy.from(new B());
   
     let called = 0;
     const autorun = Autorun.start(() => {

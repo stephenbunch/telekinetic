@@ -8,9 +8,8 @@ function isObject(obj: any): boolean {
 }
 
 class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
-  dependencies = new KeyedDependency();
-  readonly: boolean;
-  initialized = false;
+  private dependencies = new KeyedDependency();
+  private readonly: boolean;
 
   constructor(readonly: boolean) {
     this.readonly = readonly;
@@ -23,24 +22,22 @@ class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
 
   set(target: T, key: PropertyKey, value: any, receiver: any): boolean {
     if (key === PROXY_TARGET) {
+      // Always allow setting the proxy target. This is a private member.
       target[PROXY_TARGET] = value;
       return true;
     } else {
       if (this.readonly) {
+        // If the proxy is readonly, throw an error.
         return false;
       } else {
-        if (this.initialized) {
-          if (value !== target[key]) {
-            if (isObject(value)) {
-              value = ReactiveProxy.create(value);
-            }
-            target[key] = value;
-            this.dependencies.changed(key);
-          }
-        } else {
+        // Only update if the value is different.
+        if (value !== target[key]) {
           if (isObject(value)) {
-            target[key] = ReactiveProxy.create(value);
+            // If the value is an object, wrap it in a proxy.
+            value = ReactiveProxy.from(value);
           }
+          target[key] = value;
+          this.dependencies.changed(key);
         }
         return true;
       }
@@ -49,21 +46,35 @@ class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
 }
 
 class ReactiveProxy {
-  static create<T extends KeyedObject>(obj: T, readonly = false): T {
+  /**
+   * Creates a new reactive proxy from an existing object. The original object
+   * should not be used. To convert back to the original object, use toObject.
+   * @param {T} obj The object from which to create the proxy.
+   * @param {boolean} [readonly=false] Whether the proxy is readonly.
+   */
+  static from<T extends KeyedObject>(obj: T, readonly = false): T {
+    // We'll know if the object is already a proxy if the PROXY_TARGET member
+    // exists.
     if (!obj[PROXY_TARGET]) {
-      const handler = new ReactiveProxyHandler<T>(readonly);
-      const proxy = new Proxy(obj, handler);
+      const proxy = new Proxy(obj, new ReactiveProxyHandler<T>(readonly));
       proxy[PROXY_TARGET] = obj;
+      // Also wrap each nested object in a proxy.
       for (const key of Object.keys(obj)) {
-        proxy[key] = obj[key];
+        const value = obj[key];
+        if (isObject(value)) {
+          obj[key] = this.from(value);
+        }
       }
-      handler.initialized = true;
       return proxy;
     } else {
       return obj;
     }
   }
 
+  /**
+   * Converts a reactive proxy back into a normal object.
+   * @param {T} obj Presumably the proxy object.
+   */
   static toObject<T extends KeyedObject>(obj: T) : T {
     if (obj[PROXY_TARGET]) {
       obj = obj[PROXY_TARGET];
