@@ -4,7 +4,8 @@
   "description": "Reactive architecture for React-like components.",
   "main": "lib/index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "make": "tsc",
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -15,5 +16,21 @@
   "bugs": {
     "url": "https://github.com/stephenbunch/telekinetic/issues"
   },
-  "homepage": "https://github.com/stephenbunch/telekinetic#readme"
+  "homepage": "https://github.com/stephenbunch/telekinetic#readme",
+  "devDependencies": {
+    "@types/jest": "^22.2.2",
+    "jest": "^22.4.3",
+    "typescript": "^2.8.1"
+  },
+  "jest": {
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js"
+    ],
+    "transform": {
+      "^.+\\.(ts|tsx)$": "<rootDir>/preprocessor.js"
+    },
+    "testRegex": "\\.spec\\.tsx?$"
+  }
 }

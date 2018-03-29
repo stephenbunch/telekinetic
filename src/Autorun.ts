@@ -30,7 +30,7 @@ class Autorun<T> implements IAutorun {
   private func: RunFunction<T> | null;
   computation: Computation | null;
   private parentComputation: Computation | null;
-  private value: T | null;
+  value: T | null;
 
   static get current(): IAutorun | null {
     return currentAutorun;
@@ -42,10 +42,10 @@ class Autorun<T> implements IAutorun {
     return autorun;
   }
 
-  static once(func: () => any): void {
+  static once<TResult>(callback: () => TResult): TResult {
     try {
       suspend();
-      return func();
+      return callback();
     } finally {
       resume();
     }
@@ -62,18 +62,15 @@ class Autorun<T> implements IAutorun {
     });
   }
 
-  static exclude<TResult>(func: () => TResult): TResult {
+  static exclude<TResult>(callback: () => TResult): TResult {
     const current = currentAutorun;
     currentAutorun = null;
-    const result = func();
+    const result = callback();
     currentAutorun = current;
     return result;
   }
 
   constructor(runFunc: RunFunction<T>, parentComputation: Computation | null = null) {
-    if (typeof runFunc !== 'function') {
-      throw new Error('The run function argument must be a function.');
-    }
     this.id = ++uid;
     this.func = runFunc;
     this.computation = null;
