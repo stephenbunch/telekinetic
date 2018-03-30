@@ -47,12 +47,16 @@ class ReactiveProxy {
       proxy[PROXY_TARGET] = target;
       // Also wrap each nested object in a proxy.
       for (const key of Object.keys(obj)) {
-        const value = obj[key];
+        let value = obj[key];
         if (isObject(value)) {
-          target[key] = this.from(value);
-        } else {
-          target[key] = value;
+          value = this.from(value);
         }
+        Object.defineProperty(target, key, {
+          value,
+          writable: true,
+          configurable: true,
+          enumerable: true,
+        });
       }
       return proxy;
     } else {

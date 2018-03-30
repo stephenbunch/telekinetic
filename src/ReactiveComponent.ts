@@ -23,7 +23,8 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     this.reactiveProps = ReactiveProxy.from(this.props);
   }
 
-  abstract compute(props: P, computation: Computation): React.ReactNode;
+  abstract compute(
+    props: Readonly<P>, computation: Computation): React.ReactNode;
 
   componentWillUnmount() {
     if (this.autorun) {
