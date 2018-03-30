@@ -1,11 +1,11 @@
 import * as React from 'react';
 import Computation from './Computation';
-import telekinetic from './telekinetic';
-import TelekineticComponent from './TelekineticComponent';
+import observable from './observable';
+import ReactiveComponent from './ReactiveComponent';
 import { shallow } from 'enzyme';
 
-class Foo extends TelekineticComponent {
-  @telekinetic
+class Test extends ReactiveComponent {
+  @observable
   message = 'hello'
 
   compute(props: {}, computation: Computation) {
@@ -13,10 +13,10 @@ class Foo extends TelekineticComponent {
   }
 }
 
-describe('TelekineticComponent', () => {
+describe('ReactiveComponent', () => {
   it('should automatically update', () => {
-    const wrapper = shallow(<Foo />);
-    const inst = wrapper.instance() as Foo;
+    const wrapper = shallow(<Test />);
+    const inst = wrapper.instance() as Test;
     expect(wrapper.contains(<div>hello</div>));
     inst.message = 'world';
     expect(wrapper.contains(<div>world</div>));

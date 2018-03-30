@@ -1,10 +1,10 @@
 import Autorun from './Autorun';
-import telekinetic from './telekinetic';
+import observable from './observable';
 
-describe('telekinetic', () => {
+describe('observable', () => {
   it('should setup dependency tracking on class members', () => {
     class Test {
-      @telekinetic
+      @observable
       foo = 2;
     }
     const obj = new Test();
@@ -19,7 +19,7 @@ describe('telekinetic', () => {
 
   it('should setup dependency tracking on static members', () => {
     class Test {
-      @telekinetic
+      @observable
       static bar = 2;
     }
     let result = 0;
@@ -33,7 +33,7 @@ describe('telekinetic', () => {
 
   it('should convert objects to reactive proxies', () => {
     class B {
-      @telekinetic
+      @observable
       foo = {bar: 2};
     }
     const obj = new B();

@@ -10,7 +10,7 @@ interface State {
   [PROPS]: {}
 }
 
-abstract class TelekineticComponent<P = {}> extends React.Component<P> {
+abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   private autorun: IAutorun | null = null;
   private result: React.ReactNode = null;
   private reactiveProps: P;
@@ -60,4 +60,4 @@ abstract class TelekineticComponent<P = {}> extends React.Component<P> {
   }
 }
 
-export default TelekineticComponent;
+export default ReactiveComponent;
