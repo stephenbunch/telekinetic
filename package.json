@@ -18,16 +18,32 @@
   },
   "homepage": "https://github.com/stephenbunch/telekinetic#readme",
   "devDependencies": {
+    "@types/enzyme": "^3.1.9",
     "@types/jest": "^22.2.2",
+    "@types/react": "^16.1.0",
+    "enzyme": "^3.3.0",
+    "enzyme-adapter-react-16": "^1.1.1",
     "jest": "^22.4.3",
+    "react-dom": "^16.3.0",
     "ts-jest": "^22.4.2",
     "typescript": "^2.8.1"
   },
   "jest": {
-    "moduleFileExtensions": ["ts", "tsx", "js"],
+    "moduleFileExtensions": [
+      "ts",
+      "js",
+      "tsx"
+    ],
+    "testRegex": "\\.spec\\.(ts|tsx)$",
+    "setupTestFrameworkScriptFile": "<rootDir>/test-setup.js",
     "transform": {
-      "^.+\\.tsx?$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
-    },
-    "testRegex": "\\.spec\\.tsx?$"
+      "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    }
+  },
+  "peerDependencies": {
+    "react": "^16.x"
+  },
+  "dependencies": {
+    "react": "^16.3.0"
   }
 }
