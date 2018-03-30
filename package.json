@@ -1,7 +1,7 @@
 {
   "name": "telekinetic",
   "version": "0.1.0",
-  "description": "Reactive architecture for React-like components.",
+  "description": "Reactive architecture for React components.",
   "main": "lib/index.js",
   "scripts": {
     "make": "tsc",
