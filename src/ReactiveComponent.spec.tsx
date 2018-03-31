@@ -12,11 +12,18 @@ class Test extends ReactiveComponent<Props> {
   @observable
   message = 'hello'
 
-  computeCount = 0;
+  renderCount = 0;
+
+  @observable
+  text = '';
+
+  construct(props: Readonly<Props>, computation: Computation) {
+    this.text = this.message + props.end;
+  }
 
   compute(props: Readonly<Props>) {
-    this.computeCount += 1;
-    return <div>{`${this.message}${props.end}`}</div>;
+    this.renderCount += 1;
+    return <div>{this.text}</div>;
   }
 }
 
@@ -25,9 +32,9 @@ describe('ReactiveComponent', () => {
     const wrapper = shallow(<Test end="!" />);
     const inst = wrapper.instance() as Test;
     expect(wrapper.contains(<div>hello!</div>));
-    inst.message = 'world';
-    expect(wrapper.contains(<div>world!</div>));
-    expect(inst.computeCount).toBe(2);
+    inst.message = 'goodbye';
+    expect(wrapper.contains(<div>goodbye!</div>));
+    expect(inst.renderCount).toBe(2);
   });
 
   it('should automatically update when props change', () => {
@@ -36,6 +43,6 @@ describe('ReactiveComponent', () => {
     expect(wrapper.contains(<div>hello!</div>));
     wrapper.setProps({ end: '.' });
     expect(wrapper.contains(<div>hello.</div>));
-    expect(inst.computeCount).toBe(2);
+    expect(inst.renderCount).toBe(2);
   });
 });

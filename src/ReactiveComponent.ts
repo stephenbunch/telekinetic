@@ -17,6 +17,8 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     this.reactiveProps = ObservableObject.fromJS(this.props);
   }
 
+  abstract construct(props: Readonly<P>, computation: Computation): any;
+
   abstract compute(props: Readonly<P>): React.ReactNode;
 
   componentWillUnmount() {
@@ -36,6 +38,7 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     });
     if (this.autorun === null) {
       this.autorun = Autorun.start((computation) => {
+        computation.fork((comp) => this.construct(this.reactiveProps, comp));
         computation.fork(() => {
           let result = this.compute(this.reactiveProps);
           if (result !== this.result) {
