@@ -1,5 +1,5 @@
+import { observable } from './observable';
 import Autorun from './Autorun';
-import observable from './observable';
 
 describe('observable', () => {
   it('should setup dependency tracking on class members', () => {
@@ -34,7 +34,7 @@ describe('observable', () => {
   it('should convert objects to reactive proxies', () => {
     class B {
       @observable
-      foo = {bar: 2};
+      foo = { bar: 2 };
     }
     const obj = new B();
     let result = 0;
@@ -43,7 +43,7 @@ describe('observable', () => {
     });
     obj.foo.bar = 3;
     expect(result).toBe(3);
-    obj.foo = {bar: 5};
+    obj.foo = { bar: 5 };
     expect(result).toBe(5);
     autorun.dispose();
   });

@@ -2,7 +2,7 @@ import * as React from 'react';
 import Autorun from './Autorun';
 import Computation from './Computation';
 import IAutorun from './IAutorun';
-import ReactiveProxy from './ReactiveProxy';
+import ObservableObject from './ObservableObject';
 
 const PROPS = Symbol('PROPS');
 
@@ -20,11 +20,10 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   constructor(props: P, context?: any) {
     super(props, context);
     this.prevProps = this.props;
-    this.reactiveProps = ReactiveProxy.from(this.props);
+    this.reactiveProps = ObservableObject.fromJS(this.props);
   }
 
-  abstract compute(
-    props: Readonly<P>, computation: Computation): React.ReactNode;
+  abstract compute(props: Readonly<P>): React.ReactNode;
 
   componentWillUnmount() {
     if (this.autorun) {
@@ -43,17 +42,19 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     });
     if (this.autorun === null) {
       this.autorun = Autorun.start((computation) => {
-        let result = this.compute(this.reactiveProps, computation);
-        if (result !== this.result) {
-          this.result = result;
-          if (!computation.isFirstRun) {
-            Autorun.exclude(() => {
-              if (!this.rendering) {
-                this.forceUpdate();
-              }
-            });
+        computation.fork(() => {
+          let result = this.compute(this.reactiveProps);
+          if (result !== this.result) {
+            this.result = result;
+            if (!computation.isFirstRun) {
+              Autorun.exclude(() => {
+                if (!this.rendering) {
+                  this.forceUpdate();
+                }
+              });
+            }
           }
-        }
+        });
       });
     }
     this.rendering = false;

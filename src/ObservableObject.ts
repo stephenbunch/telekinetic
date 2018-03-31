@@ -1,10 +1,13 @@
 import isObject from './isObject';
 import KeyedDependency from './KeyedDependency';
 import KeyedObject from './KeyedObject';
+import { observable, OBSERVABLE } from './observable';
+import ObservableMap from './ObservableMap';
+import toJS from './toJS';
 
 const PROXY_TARGET = Symbol('PROXY_TARGET');
 
-class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
+class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
   private dependencies = new KeyedDependency();
 
   get(target: T, key: PropertyKey, receiver: any): any {
@@ -20,11 +23,7 @@ class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
     } else {
       // Only update if the value is different.
       if (value !== target[key]) {
-        if (isObject(value)) {
-          // If the value is an object, wrap it in a proxy.
-          value = ReactiveProxy.from(value);
-        }
-        target[key] = value;
+        target[key] = observable(value);
         this.dependencies.changed(key);
       }
       return true;
@@ -32,27 +31,24 @@ class ReactiveProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
   }
 }
 
-class ReactiveProxy {
+class ObservableObject {
   /**
    * Creates a new reactive proxy from an existing object. The original object
    * is not used. To convert back to the original object, use toObject.
    * @param {T} obj The object from which to create the proxy.
    */
-  static from<T extends KeyedObject>(obj: T): T {
+  static fromJS<T extends KeyedObject>(obj: T): T {
     // We'll know if the object is already a proxy if the PROXY_TARGET member
     // exists.
     if (!obj[PROXY_TARGET]) {
       const target = Object.create(obj);
-      const proxy = new Proxy(target, new ReactiveProxyHandler<T>());
+      const proxy = new Proxy(target, new ObservableProxyHandler<T>());
       proxy[PROXY_TARGET] = target;
+      proxy[OBSERVABLE] = true;
       // Also wrap each nested object in a proxy.
       for (const key of Object.keys(obj)) {
-        let value = obj[key];
-        if (isObject(value)) {
-          value = this.from(value);
-        }
         Object.defineProperty(target, key, {
-          value,
+          value: observable(obj[key]),
           writable: true,
           configurable: true,
           enumerable: true,
@@ -64,26 +60,25 @@ class ReactiveProxy {
     }
   }
 
+  static isObservable(obj: any): boolean {
+    return isObject(obj) && !!obj[PROXY_TARGET];
+  }
+
   /**
    * Converts a reactive proxy back into a normal object.
    * @param {T} obj Presumably the proxy object.
    */
-  static toObject<T extends KeyedObject>(obj: T) : T {
+  static toJS<T extends KeyedObject>(obj: T): T {
     if (obj[PROXY_TARGET]) {
       obj = obj[PROXY_TARGET];
-    }
-    for (const key of Object.keys(obj)) {
-      const value = obj[key];
-      if (isObject(value)) {
-        obj[key] = this.toObject(value);
-      } else {
-        obj[key] = value;
+      for (const key of Object.keys(obj)) {
+        obj[key] = toJS(obj[key]);
       }
     }
     return obj;
   }
 
-  private constructor() {}
+  private constructor() { }
 }
 
-export default ReactiveProxy;
+export default ObservableObject;

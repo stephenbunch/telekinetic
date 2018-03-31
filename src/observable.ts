@@ -1,6 +1,9 @@
 import isObject from './isObject';
 import KeyedDependency from './KeyedDependency';
-import ReactiveProxy from './ReactiveProxy';
+import ObservableObject from './ObservableObject';
+import ObservableMap from './ObservableMap';
+
+export const OBSERVABLE = Symbol('Observable');
 
 const STATE = Symbol('STATE');
 
@@ -9,23 +12,23 @@ const DEFAULT: PropertyDescriptor = {
   enumerable: true,
 };
 
-class TelekineticState {
+class ObservableState {
   dependencies = new KeyedDependency();
   values = new Map<PropertyKey, any>();
 }
 
-class TelekineticObject {
-  [STATE]: TelekineticState | undefined;
+class ObservableHost {
+  [STATE]: ObservableState | undefined;
 }
 
-function getState(obj: TelekineticObject): TelekineticState {
+function getState(obj: ObservableHost): ObservableState {
   if (!obj[STATE]) {
-    obj[STATE] = new TelekineticState();
+    obj[STATE] = new ObservableState();
   }
   return obj[STATE]!;
 }
 
-function getValue(obj: TelekineticObject,
+function getValue(obj: ObservableHost,
   base: PropertyDescriptor | undefined, key: PropertyKey): any {
   if (base && base.get) {
     return base.get.call(obj);
@@ -41,10 +44,10 @@ function getValue(obj: TelekineticObject,
   }
 }
 
-function setValue(obj: TelekineticObject,
+function setValue(obj: ObservableHost,
   base: PropertyDescriptor | undefined, key: PropertyKey, value: any) {
   if (isObject(value)) {
-    value = ReactiveProxy.from(value);
+    value = ObservableObject.fromJS(value);
   }
   if (base && base.set) {
     base.set(value);
@@ -53,32 +56,47 @@ function setValue(obj: TelekineticObject,
   }
 }
 
-function telekinetic(target: any, key: PropertyKey) {
-  const base = Object.getOwnPropertyDescriptor(target, key);
-  const descriptor: PropertyDescriptor = {...(base || DEFAULT)};
-  if (descriptor.configurable) {
-    if (!base ||
-      base.get || Object.prototype.hasOwnProperty.call(base, 'value')) {
-      descriptor.get = function(this: TelekineticObject) {
-        getState(this).dependencies.depend(key);
-        return getValue(this, base, key);
-      };
+export function observable(value: any): any;
+export function observable(target: any, key: PropertyKey): void;
+export function observable(targetOrValue: any, key?: PropertyKey) {
+  if (key) {
+    const base = Object.getOwnPropertyDescriptor(targetOrValue, key);
+    const descriptor: PropertyDescriptor = { ...(base || DEFAULT) };
+    if (descriptor.configurable) {
+      if (!base ||
+        base.get || Object.prototype.hasOwnProperty.call(base, 'value')) {
+        descriptor.get = function (this: ObservableHost) {
+          getState(this).dependencies.depend(key);
+          return getValue(this, base, key);
+        };
+      }
+      if (!base || base.set || base.writable) {
+        descriptor.set = function (this: ObservableHost, value: any) {
+          const current = getValue(this, base, key);
+          if (current !== value) {
+            setValue(this, base, key, value);
+            getState(this).dependencies.changed(key);
+          }
+        };
+      }
+      if (descriptor.get || descriptor.set) {
+        delete descriptor.value;
+        delete descriptor.writable;
+      }
+      Object.defineProperty(targetOrValue, key, descriptor);
     }
-    if (!base || base.set || base.writable) {
-      descriptor.set = function(this: TelekineticObject, value: any) {
-        const current = getValue(this, base, key);
-        if (current !== value) {
-          setValue(this, base, key, value);
-          getState(this).dependencies.changed(key);
-        }
-      };
+  } else {
+    if (isObject(targetOrValue)) {
+      if (targetOrValue[OBSERVABLE]) {
+        return targetOrValue;
+      } else if (targetOrValue instanceof Map) {
+        return ObservableMap.fromJS(targetOrValue);
+      } else {
+        return ObservableObject.fromJS(targetOrValue);
+      }
+    } else {
+      return targetOrValue;
     }
-    if (descriptor.get || descriptor.set) {
-      delete descriptor.value;
-      delete descriptor.writable;
-    }
-    Object.defineProperty(target, key, descriptor);
   }
 }
 
-export default telekinetic;

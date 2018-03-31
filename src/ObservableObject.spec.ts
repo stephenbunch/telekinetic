@@ -1,9 +1,9 @@
 import Autorun from './Autorun';
-import ReactiveProxy from './ReactiveProxy';
+import ObservableObject from './ObservableObject';
 
-describe('ReactiveProxy', () => {
+describe('ObservableObject', () => {
   it('should setup dependencies', () => {
-    const obj = ReactiveProxy.from({foo: 1});
+    const obj = ObservableObject.fromJS({ foo: 1 });
     let result = 0;
     const autorun = Autorun.start(() => {
       result = obj.foo;
@@ -22,7 +22,8 @@ describe('ReactiveProxy', () => {
       bar = new A();
       baz = new A();
     }
-    const obj = ReactiveProxy.from(new B());
+    debugger;
+    const obj = ObservableObject.fromJS(new B());
     obj.bar.foo = 2;
     obj.baz = obj.bar;
     expect(obj.bar).toBe(obj.baz);
@@ -36,8 +37,8 @@ describe('ReactiveProxy', () => {
     class B {
       foo = new A();
     }
-    const obj = ReactiveProxy.from(new B());
-  
+    const obj = ObservableObject.fromJS(new B());
+
     let called = 0;
     const autorun = Autorun.start(() => {
       obj.foo.bar;
@@ -45,13 +46,13 @@ describe('ReactiveProxy', () => {
       called += 1;
     });
     expect(called).toBe(1);
-  
+
     obj.foo = {
       bar: 3,
       baz: 4,
     };
     expect(called).toBe(2);
-  
+
     autorun.dispose();
   });
 });
