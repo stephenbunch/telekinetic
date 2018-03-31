@@ -1,25 +1,24 @@
 import Autorun from './Autorun';
 import Computation from './Computation';
+import OrderedSet from './OrderedSet';
 
 export default class Dependency {
-  private computations: Computation[] = [];
+  private computations = new OrderedSet<Computation>();
 
   depend(): void {
     if (Autorun.current && Autorun.current.isAlive) {
-      if (this.computations.indexOf(Autorun.current.computation!) === -1) {
-        this.computations.push(Autorun.current.computation!);
-      }
+      this.computations.push(Autorun.current.computation!);
     }
   }
 
   changed(): void {
     const computations = this.computations;
-    this.computations = [];
+    this.computations = new OrderedSet<Computation>();
     for (const computation of computations) {
       if (computation.isAlive) {
         if (
           computation.autorun === Autorun.current ||
-          computation.stack!.indexOf(Autorun.current!) > -1
+          computation.stack!.has(Autorun.current!)
         ) {
           throw new Error('Circular dependencies are not allowed.');
         }

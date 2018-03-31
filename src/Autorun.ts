@@ -1,11 +1,12 @@
 import Computation from './Computation';
 import IAutorun from './IAutorun';
+import OrderedSet from './OrderedSet';
 import RunFunction from './RunFunction';
 
 let currentAutorun: IAutorun | null = null;
 let suspendCount = 0;
-let suspendedAutoruns: IAutorun[] = [];
-const autorunStack: IAutorun[] = [];
+let suspendedAutoruns = new OrderedSet<IAutorun>();
+const autorunStack = new OrderedSet<IAutorun>();
 let uid = 0;
 
 function suspend(): void {
@@ -17,7 +18,7 @@ function resume(): void {
     suspendCount -= 1;
     if (suspendCount === 0) {
       const autoruns = suspendedAutoruns;
-      suspendedAutoruns = [];
+      suspendedAutoruns = new OrderedSet<IAutorun>();
       for (const autorun of autoruns) {
         autorun.rerun();
       }
@@ -100,9 +101,7 @@ class Autorun<T> implements IAutorun {
       if (this.parentComputation && !this.parentComputation.isAlive) {
         this.dispose();
       } else if (suspendCount > 0) {
-        if (suspendedAutoruns.indexOf(this) === -1) {
-          suspendedAutoruns.push(this);
-        }
+        suspendedAutoruns.push(this);
       } else {
         result = this.exec(() => {
           const isFirstRun = this.computation === null;
@@ -110,7 +109,7 @@ class Autorun<T> implements IAutorun {
             this.computation.dispose();
           }
           this.computation = new Computation(
-            this, isFirstRun, autorunStack.slice());
+            this, isFirstRun, autorunStack.clone());
           try {
             this.value = this.func!(this.computation);
           } catch (err) {

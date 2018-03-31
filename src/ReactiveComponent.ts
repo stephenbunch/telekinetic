@@ -4,12 +4,6 @@ import Computation from './Computation';
 import IAutorun from './IAutorun';
 import ObservableObject from './ObservableObject';
 
-const PROPS = Symbol('PROPS');
-
-interface State {
-  [PROPS]: {}
-}
-
 abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   private autorun: IAutorun | null = null;
   private result: React.ReactNode = null;

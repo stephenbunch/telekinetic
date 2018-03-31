@@ -1,13 +1,14 @@
 import Autorun from './Autorun';
 import IAutorun from './IAutorun';
+import OrderedSet from './OrderedSet';
 import RunFunction from './RunFunction';
 
 export default class Computation {
   autorun: IAutorun | null;
   isFirstRun: boolean;
-  stack: IAutorun[] | null;
+  stack: OrderedSet<IAutorun> | null;
 
-  constructor(autorun: IAutorun, isFirstRun: boolean, stack: IAutorun[]) {
+  constructor(autorun: IAutorun, isFirstRun: boolean, stack: OrderedSet<IAutorun>) {
     this.autorun = autorun;
     this.isFirstRun = isFirstRun;
     this.stack = stack;
