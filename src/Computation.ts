@@ -1,9 +1,7 @@
-import Autorun from './Autorun';
-import IAutorun from './IAutorun';
-import OrderedSet from './OrderedSet';
-import RunFunction from './RunFunction';
+import { Autorun, IAutorun, RunFunction } from './Autorun';
+import { OrderedSet } from './OrderedSet';
 
-export default class Computation {
+export class Computation {
   autorun: IAutorun | null;
   isFirstRun: boolean;
   stack: OrderedSet<IAutorun> | null;

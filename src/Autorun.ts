@@ -1,7 +1,5 @@
-import Computation from './Computation';
-import IAutorun from './IAutorun';
-import OrderedSet from './OrderedSet';
-import RunFunction from './RunFunction';
+import { Computation } from './Computation';
+import { OrderedSet } from './OrderedSet';
 
 let currentAutorun: IAutorun | null = null;
 let suspendCount = 0;
@@ -26,7 +24,17 @@ function resume(): void {
   }
 }
 
-class Autorun<T> implements IAutorun {
+export interface IAutorun {
+  readonly isAlive: boolean;
+  readonly computation: Computation | null;
+  exec<TResult>(callback: () => TResult): TResult;
+  rerun(): void;
+  dispose(): void;
+}
+
+export type RunFunction<T> = (computation: Computation) => T;
+
+export class Autorun<T> implements IAutorun {
   id: number;
   private func: RunFunction<T> | null;
   computation: Computation | null;
@@ -139,5 +147,3 @@ class Autorun<T> implements IAutorun {
     }
   }
 }
-
-export default Autorun;

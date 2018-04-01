@@ -1,9 +1,7 @@
-import isObject from './isObject';
-import KeyedDependency from './KeyedDependency';
-import KeyedObject from './KeyedObject';
+import { KeyedDependency } from './KeyedDependency';
 import { observable, OBSERVABLE } from './observable';
-import ObservableMap from './ObservableMap';
-import toJS from './toJS';
+import { ObservableMap } from './ObservableMap';
+import { toJS, isObject } from './util';
 
 const PROXY_TARGET = Symbol('PROXY_TARGET');
 
@@ -31,7 +29,9 @@ class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
   }
 }
 
-class ObservableObject {
+export type KeyedObject = { [index: string]: any };
+
+export class ObservableObject {
   /**
    * Creates a new reactive proxy from an existing object. The original object
    * is not used. To convert back to the original object, use toObject.
@@ -80,5 +80,3 @@ class ObservableObject {
 
   private constructor() { }
 }
-
-export default ObservableObject;

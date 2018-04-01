@@ -1,4 +1,4 @@
-class OrderedSet<T> {
+export class OrderedSet<T> {
   private set = new Set<T>();
   private items = new Array<T>();
 
@@ -34,4 +34,3 @@ class OrderedSet<T> {
   }
 }
 
-export default OrderedSet;

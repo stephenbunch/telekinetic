@@ -1,10 +1,9 @@
 import * as React from 'react';
-import Autorun from './Autorun';
-import Computation from './Computation';
-import IAutorun from './IAutorun';
-import ObservableObject from './ObservableObject';
+import { Autorun, IAutorun } from './Autorun';
+import { Computation } from './Computation';
+import { ObservableObject } from './ObservableObject';
 
-abstract class ReactiveComponent<P = {}> extends React.Component<P> {
+export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   private autorun: IAutorun | null = null;
   private result: React.ReactNode = null;
   private reactiveProps: P;
@@ -58,5 +57,3 @@ abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     return this.result;
   }
 }
-
-export default ReactiveComponent;

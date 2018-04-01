@@ -1,5 +1,5 @@
-import Autorun from './Autorun';
-import ObservableObject from './ObservableObject';
+import { Autorun } from './Autorun';
+import { ObservableObject } from './ObservableObject';
 
 describe('ObservableObject', () => {
   it('should setup dependencies', () => {

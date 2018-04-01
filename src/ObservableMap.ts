@@ -1,9 +1,9 @@
 import { OBSERVABLE } from './observable';
-import Autorun from './Autorun';
-import Dependency from './Dependency';
-import KeyedDependency from './KeyedDependency';
+import { Autorun } from './Autorun';
+import { Dependency } from './Dependency';
+import { KeyedDependency } from './KeyedDependency';
 
-class ObservableMap<K, V> implements Map<K, V> {
+export class ObservableMap<K, V> implements Map<K, V> {
   private map: Map<K, V>;
   private keysDependency = new Dependency();
   private valuesDependency = new Dependency();
@@ -113,5 +113,3 @@ class ObservableMap<K, V> implements Map<K, V> {
     }
   }
 }
-
-export default ObservableMap;

@@ -1,6 +1,6 @@
 {
   "name": "telekinetic",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Transparent reactive programming for React.",
   "main": "lib/index.js",
   "scripts": {

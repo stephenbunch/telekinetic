@@ -1,5 +1,5 @@
+import { Autorun } from './Autorun';
 import { observable } from './observable';
-import Autorun from './Autorun';
 
 describe('observable', () => {
   it('should setup dependency tracking on class members', () => {

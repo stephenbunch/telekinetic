@@ -1,7 +1,7 @@
-import isObject from './isObject';
-import KeyedDependency from './KeyedDependency';
-import ObservableObject from './ObservableObject';
-import ObservableMap from './ObservableMap';
+import { isObject } from './util';
+import { KeyedDependency } from './KeyedDependency';
+import { ObservableMap } from './ObservableMap';
+import { ObservableObject } from './ObservableObject';
 
 export const OBSERVABLE = Symbol('Observable');
 

@@ -1,8 +1,8 @@
-import Autorun from './Autorun';
-import Computation from './Computation';
-import OrderedSet from './OrderedSet';
+import { Autorun } from './Autorun';
+import { Computation } from './Computation';
+import { OrderedSet } from './OrderedSet';
 
-export default class Dependency {
+export class Dependency {
   private computations = new OrderedSet<Computation>();
 
   depend(): void {

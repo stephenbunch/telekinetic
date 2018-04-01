@@ -1,8 +1,8 @@
+import { Computation } from './Computation';
 import { observable } from './observable';
+import { ReactiveComponent } from './ReactiveComponent';
 import { shallow } from 'enzyme';
 import * as React from 'react';
-import Computation from './Computation';
-import ReactiveComponent from './ReactiveComponent';
 
 interface Props {
   end: string

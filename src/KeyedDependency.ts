@@ -1,6 +1,6 @@
-import Dependency from './Dependency';
+import { Dependency } from './Dependency';
 
-export default class KeyedDependency {
+export class KeyedDependency {
   private dependencies = new Map<any, Dependency>();
 
   depend(key: any) {
