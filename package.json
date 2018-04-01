@@ -1,8 +1,9 @@
 {
   "name": "telekinetic",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Transparent reactive programming for React.",
-  "main": "lib/index.js",
+  "main": "./lib/main.js",
+  "types": "./lib/main.d.ts",
   "scripts": {
     "build": "tsc",
     "test": "jest",
