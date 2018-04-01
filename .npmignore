@@ -1,0 +1,8 @@
+/.vscode/
+/node_modules/
+/src/
+.editorconfig
+npm-debug.log
+preprocessor.js
+test-setup.js
+tsconfig.json
