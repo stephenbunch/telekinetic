@@ -1,11 +1,12 @@
 {
   "name": "telekinetic",
-  "version": "0.7.0",
+  "version": "0.8.0",
   "description": "Transparent reactive programming for React.",
   "main": "lib/main.js",
   "types": "lib/main.d.ts",
   "files": [
-    "lib"
+    "lib",
+    "src"
   ],
   "scripts": {
     "build": "tsc",
