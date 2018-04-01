@@ -31,7 +31,7 @@ describe('observable', () => {
     autorun.dispose();
   });
 
-  it('should convert objects to reactive proxies', () => {
+  it('should convert objects to observable objects', () => {
     class B {
       @observable
       foo = { bar: 2 };
@@ -46,5 +46,34 @@ describe('observable', () => {
     obj.foo = { bar: 5 };
     expect(result).toBe(5);
     autorun.dispose();
+  });
+
+  it('should not interfere with arrays', () => {
+    class A {
+      @observable
+      foo = [1];
+    }
+    const obj = new A();
+    let result: number[] = [];
+    const autorun = Autorun.start(() => {
+      result = obj.foo;
+    });
+    obj.foo = [2, 3];
+    expect(result).toEqual([2, 3]);
+    autorun.dispose();
+  });
+
+  it('should convert maps to observable maps', () => {
+    class A {
+      @observable
+      foo = new Map<string, string>();
+    }
+    const obj = new A();
+    let result: string | undefined;
+    const autorun = Autorun.start(() => {
+      result = obj.foo.get('foo');
+    });
+    obj.foo.set('foo', 'bar');
+    expect(result).toBe('bar');
   });
 });

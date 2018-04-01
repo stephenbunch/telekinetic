@@ -46,9 +46,7 @@ function getValue(obj: ObservableHost,
 
 function setValue(obj: ObservableHost,
   base: PropertyDescriptor | undefined, key: PropertyKey, value: any) {
-  if (isObject(value)) {
-    value = ObservableObject.fromJS(value);
-  }
+  value = observable(value);
   if (base && base.set) {
     base.set(value);
   } else {

@@ -22,7 +22,6 @@ describe('ObservableObject', () => {
       bar = new A();
       baz = new A();
     }
-    debugger;
     const obj = ObservableObject.fromJS(new B());
     obj.bar.foo = 2;
     obj.baz = obj.bar;
