@@ -36,18 +36,14 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
       }
     });
     if (this.autorun === null) {
-      this.autorun = Autorun.start((computation) => {
-        computation.fork((comp) => this.construct(this.reactiveProps, comp));
-        computation.fork(() => {
+      this.autorun = Autorun.start((root) => {
+        root.fork((comp) => this.construct(this.reactiveProps, comp));
+        root.fork(() => {
           let result = this.compute(this.reactiveProps);
           if (result !== this.result) {
             this.result = result;
-            if (!computation.isFirstRun) {
-              Autorun.exclude(() => {
-                if (!this.rendering) {
-                  this.forceUpdate();
-                }
-              });
+            if (!this.rendering) {
+              Autorun.exclude(() => this.forceUpdate());
             }
           }
         });

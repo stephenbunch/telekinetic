@@ -1,7 +1,7 @@
 import { Computation } from './Computation';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
-import { shallow } from 'enzyme';
+import { mount } from 'enzyme';
 import * as React from 'react';
 
 interface Props {
@@ -29,20 +29,25 @@ class Test extends ReactiveComponent<Props> {
 
 describe('ReactiveComponent', () => {
   it('should automatically update when observable changes', () => {
-    const wrapper = shallow(<Test end="!" />);
+    const wrapper = mount(<Test end="!" />);
     const inst = wrapper.instance() as Test;
-    expect(wrapper.contains(<div>hello!</div>));
+    jest.spyOn(inst, 'forceUpdate');
+    expect(wrapper.contains(<div>hello!</div>)).toBe(true);
     inst.message = 'goodbye';
-    expect(wrapper.contains(<div>goodbye!</div>));
+    expect(inst.forceUpdate).toHaveBeenCalled();
+    wrapper.update();
+    expect(wrapper.contains(<div>goodbye!</div>)).toBe(true);
     expect(inst.renderCount).toBe(2);
+    wrapper.unmount();
   });
 
   it('should automatically update when props change', () => {
-    const wrapper = shallow(<Test end="!" />);
+    const wrapper = mount(<Test end="!" />);
     const inst = wrapper.instance() as Test;
-    expect(wrapper.contains(<div>hello!</div>));
+    expect(wrapper.contains(<div>hello!</div>)).toBe(true);
     wrapper.setProps({ end: '.' });
-    expect(wrapper.contains(<div>hello.</div>));
+    expect(wrapper.contains(<div>hello.</div>)).toBe(true);
     expect(inst.renderCount).toBe(2);
+    wrapper.unmount();
   });
 });
