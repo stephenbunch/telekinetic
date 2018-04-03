@@ -1,24 +1,36 @@
 import * as React from 'react';
 import { Autorun, IAutorun } from './Autorun';
 import { Computation } from './Computation';
-import { ObservableObject } from './ObservableObject';
+import { ObservableProxy } from './ObservableProxy';
+
+function proxify<T>(props: T): T {
+  const obj = {} as T;
+  Object.assign(obj, props);
+  return ObservableProxy.wrap(obj);
+}
 
 export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   private autorun: IAutorun | null = null;
   private result: React.ReactNode = null;
-  private reactiveProps: P;
-  private prevProps: P;
+  private proxified = false;
+  private _props: P | undefined;
   private rendering = false;
 
-  constructor(props: P, context?: any) {
-    super(props, context);
-    this.prevProps = this.props;
-    this.reactiveProps = ObservableObject.fromJS(this.props);
+  get props(): Readonly<P> {
+    return this._props!;
   }
 
-  abstract construct(props: Readonly<P>, computation: Computation): any;
+  set props(value: Readonly<P>) {
+    if (this._props === undefined || !this.proxified) {
+      this._props = value;
+    } else {
+      Autorun.once(() => Object.assign(this._props, value));
+    }
+  }
 
-  abstract compute(props: Readonly<P>): React.ReactNode;
+  abstract construct(computation: Computation): any;
+
+  abstract compute(): React.ReactNode;
 
   componentWillUnmount() {
     if (this.autorun) {
@@ -29,17 +41,15 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
 
   render() {
     this.rendering = true;
-    Autorun.once(() => {
-      if (this.props !== this.prevProps) {
-        this.prevProps = this.props;
-        Object.assign(this.reactiveProps, this.props);
-      }
-    });
+    if (!this.proxified) {
+      this._props = proxify(this._props);
+      this.proxified = true;
+    }
     if (this.autorun === null) {
       this.autorun = Autorun.start((root) => {
-        root.fork((comp) => this.construct(this.reactiveProps, comp));
+        root.fork((comp) => this.construct(comp));
         root.fork(() => {
-          let result = this.compute(this.reactiveProps);
+          let result = this.compute();
           if (result !== this.result) {
             this.result = result;
             if (!this.rendering) {

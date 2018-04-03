@@ -1,4 +1,3 @@
-import { OBSERVABLE } from './observable';
 import { Autorun } from './Autorun';
 import { Dependency } from './Dependency';
 import { KeyedDependency } from './KeyedDependency';
@@ -19,10 +18,6 @@ export class ObservableMap<K, V> implements Map<K, V> {
 
   constructor(entries?: ReadonlyArray<[K, V]>) {
     this.map = new Map(entries);
-  }
-
-  get [OBSERVABLE](): boolean {
-    return true;
   }
 
   get size(): number {

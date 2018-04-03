@@ -4,6 +4,6 @@ export * from './Dependency';
 export * from './KeyedDependency';
 export * from './observable';
 export * from './ObservableMap';
-export * from './ObservableObject';
+export * from './ObservableProxy';
 export * from './ReactiveComponent';
 export * from './OrderedSet';

@@ -5,10 +5,11 @@ import { mount } from 'enzyme';
 import * as React from 'react';
 
 interface Props {
+  other: number
   end: string
 }
 
-class Test extends ReactiveComponent<Props> {
+class TestComponent extends ReactiveComponent<Props> {
   @observable
   message = 'hello'
 
@@ -17,11 +18,11 @@ class Test extends ReactiveComponent<Props> {
   @observable
   text = '';
 
-  construct(props: Readonly<Props>, computation: Computation) {
-    this.text = this.message + props.end;
+  construct(computation: Computation) {
+    this.text = this.message + this.props.end;
   }
 
-  compute(props: Readonly<Props>) {
+  compute() {
     this.renderCount += 1;
     return <div>{this.text}</div>;
   }
@@ -29,8 +30,8 @@ class Test extends ReactiveComponent<Props> {
 
 describe('ReactiveComponent', () => {
   it('should automatically update when observable changes', () => {
-    const wrapper = mount(<Test end="!" />);
-    const inst = wrapper.instance() as Test;
+    const wrapper = mount(<TestComponent end="!" other={0} />);
+    const inst = wrapper.instance() as TestComponent;
     jest.spyOn(inst, 'forceUpdate');
     expect(wrapper.contains(<div>hello!</div>)).toBe(true);
     inst.message = 'goodbye';
@@ -42,11 +43,13 @@ describe('ReactiveComponent', () => {
   });
 
   it('should automatically update when props change', () => {
-    const wrapper = mount(<Test end="!" />);
-    const inst = wrapper.instance() as Test;
+    const wrapper = mount(<TestComponent end="!" other={0} />);
+    const inst = wrapper.instance() as TestComponent;
     expect(wrapper.contains(<div>hello!</div>)).toBe(true);
+    wrapper.setProps({ other: 42 });
     wrapper.setProps({ end: '.' });
     expect(wrapper.contains(<div>hello.</div>)).toBe(true);
+    // Render count should be 2 because the 'other' property is not used.
     expect(inst.renderCount).toBe(2);
     wrapper.unmount();
   });
