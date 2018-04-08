@@ -8,8 +8,12 @@ const DEFAULT: PropertyDescriptor = {
 };
 
 class ObservableState {
-  dependencies = new KeyedDependency();
+  dependencies: KeyedDependency;
   values = new Map<PropertyKey, any>();
+
+  constructor(name: string) {
+    this.dependencies = new KeyedDependency(name);
+  }
 }
 
 class ObservableHost {
@@ -18,7 +22,11 @@ class ObservableHost {
 
 function getState(obj: ObservableHost): ObservableState {
   if (!obj[STATE]) {
-    obj[STATE] = new ObservableState();
+    if (obj.constructor) {
+      obj[STATE] = new ObservableState(obj.constructor.name);
+    } else {
+      obj[STATE] = new ObservableState('object');
+    }
   }
   return obj[STATE]!;
 }

@@ -3,9 +3,9 @@ import { ObservableProxy } from './ObservableProxy';
 
 describe('ObservableObject', () => {
   it('should setup dependencies', () => {
-    const obj = ObservableProxy.wrap({ foo: 1 });
+    const obj = ObservableProxy.wrap('obj', { foo: 1 });
     let result = 0;
-    const autorun = Autorun.start(() => {
+    const autorun = Autorun.start('main', () => {
       result = obj.foo;
     });
     expect(result).toBe(1);
@@ -15,9 +15,9 @@ describe('ObservableObject', () => {
   });
 
   it('should work with unknown properties', () => {
-    const obj: { [index: string]: any } = ObservableProxy.wrap({});
+    const obj: { [index: string]: any } = ObservableProxy.wrap('obj', {});
     let result = 0;
-    const autorun = Autorun.start(() => {
+    const autorun = Autorun.start('main', () => {
       result = obj.foo;
     });
     expect(result).toBe(undefined);

@@ -1,7 +1,7 @@
 import { Autorun } from './Autorun';
 import { observable } from './observable';
 
-describe('observable', () => {
+describe('@observable', () => {
   it('should setup dependency tracking on class members', () => {
     class Test {
       @observable
@@ -9,7 +9,7 @@ describe('observable', () => {
     }
     const obj = new Test();
     let result = 0;
-    const autorun = Autorun.start(() => {
+    const autorun = Autorun.start('main', () => {
       result = obj.foo;
     });
     obj.foo = 3;
@@ -23,7 +23,7 @@ describe('observable', () => {
       static bar = 2;
     }
     let result = 0;
-    const autorun = Autorun.start(() => {
+    const autorun = Autorun.start('main', () => {
       result = Test.bar;
     });
     Test.bar = 3;

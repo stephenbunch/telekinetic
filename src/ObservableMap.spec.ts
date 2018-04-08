@@ -3,10 +3,10 @@ import { ObservableMap } from './ObservableMap';
 
 describe('ObservableMap', () => {
   it('should track a dependency when getting the size', () => {
-    const map = new ObservableMap<number, string>();
+    const map = new ObservableMap<number, string>('map');
     let size = null;
     let called = 0;
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       called += 1;
       size = map.size;
     });
@@ -21,10 +21,10 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting a value', () => {
-    const map = new ObservableMap<string, string>();
+    const map = new ObservableMap<string, string>('map');
     let called = 0;
     let value = null;
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       called += 1;
       value = map.get('foo');
     });
@@ -38,9 +38,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the keys', () => {
-    const map = new ObservableMap<string, number>();
+    const map = new ObservableMap<string, number>('map');
     const output: Array<Array<string>> = [];
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       output.push(Array.from(map.keys()));
     });
     map.set('foo', 2);
@@ -58,9 +58,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the values', () => {
-    const map = new ObservableMap<string, number>();
+    const map = new ObservableMap<string, number>('map');
     const output: Array<Array<number>> = [];
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       output.push(Array.from(map.values()));
     });
     map.set('foo', 2);
@@ -78,9 +78,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the entries', () => {
-    const map = new ObservableMap<string, number>();
+    const map = new ObservableMap<string, number>('map');
     const output: Array<Array<[string, number]>> = [];
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       output.push(Array.from(map.entries()));
     });
     map.set('foo', 2);
@@ -98,9 +98,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the iterator', () => {
-    const map = new ObservableMap<string, number>();
+    const map = new ObservableMap<string, number>('map');
     const output: Array<Array<[string, number]>> = [];
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       output.push(Array.from(map[Symbol.iterator]()));
     });
     map.set('foo', 2);
@@ -118,10 +118,10 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when determining whether a key exists', () => {
-    const map = new ObservableMap<string, number>();
+    const map = new ObservableMap<string, number>('map');
     let has = null;
     let called = 0;
-    const auto = Autorun.start(() => {
+    const auto = Autorun.start('main', () => {
       called += 1;
       has = map.has('foo');
     });

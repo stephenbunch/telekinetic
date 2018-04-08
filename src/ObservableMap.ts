@@ -4,19 +4,22 @@ import { KeyedDependency } from './KeyedDependency';
 
 export class ObservableMap<K, V> implements Map<K, V> {
   private map: Map<K, V>;
-  private keysDependency = new Dependency();
-  private valuesDependency = new Dependency();
-  private dependencies = new KeyedDependency();
+  private keysDependency: Dependency;
+  private valuesDependency: Dependency;
+  private dependencies: KeyedDependency;
 
-  static fromJS<K, V>(map: Map<K, V>): ObservableMap<K, V> {
-    return new ObservableMap<K, V>(Array.from(map.entries()));
+  static fromJS<K, V>(name: string, map: Map<K, V>): ObservableMap<K, V> {
+    return new ObservableMap<K, V>(name, Array.from(map.entries()));
   }
 
   static toJS<K, V>(map: ObservableMap<K, V>): Map<K, V> {
     return new Map(Array.from(map.entries()));
   }
 
-  constructor(entries?: ReadonlyArray<[K, V]>) {
+  constructor(name: string, entries?: ReadonlyArray<[K, V]>) {
+    this.keysDependency = new Dependency(`${name}.$$keys`);
+    this.valuesDependency = new Dependency(`${name}.$$values`);
+    this.dependencies = new KeyedDependency(name);
     this.map = new Map(entries);
   }
 
