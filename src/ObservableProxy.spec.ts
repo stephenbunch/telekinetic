@@ -1,7 +1,7 @@
 import { Autorun } from './Autorun';
 import { ObservableProxy } from './ObservableProxy';
 
-describe('ObservableObject', () => {
+describe('ObservableProxy', () => {
   it('should setup dependencies', () => {
     const obj = ObservableProxy.wrap('obj', { foo: 1 });
     let result = 0;
