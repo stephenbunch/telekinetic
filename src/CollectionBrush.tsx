@@ -74,7 +74,7 @@ export interface CollectionBrushProps<K, V, S = any> {
   descending?: boolean;
 }
 
-export class CollectionBrush<K, V, S> extends
+export class CollectionBrush<K, V, S = any> extends
   ReactiveComponent<CollectionBrushProps<K, V, S>> {
   private store: Store<K, V> | null = null;
 
