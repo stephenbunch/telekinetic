@@ -10,6 +10,8 @@ interface Props {
 }
 
 class TestComponent extends ReactiveComponent<Props> {
+  name = 'testComponent';
+
   @observable
   message = 'hello'
 

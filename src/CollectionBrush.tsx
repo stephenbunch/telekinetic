@@ -9,7 +9,7 @@ import { OrderedSet } from './OrderedSet';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
 
-export class Store<K, V> implements Iterable<[K, V]> {
+export class CollectionBrushStore<K, V> implements Iterable<[K, V]> {
   private store = new Map<K, V>();
   private _onAdd = new EventController<[K, V]>();
   private _onDelete = new EventController<[K, V]>();
@@ -68,15 +68,15 @@ export class Store<K, V> implements Iterable<[K, V]> {
 
 export interface CollectionBrushProps<K, V, S = any> {
   name: string;
-  data: Store<K, V>;
+  data: CollectionBrushStore<K, V>;
   render(value: V): React.ReactNode;
   sort?(value: V): S;
   descending?: boolean;
 }
 
-export class CollectionBrush<K, V, S = any> extends
+export abstract class CollectionBrush<K, V, S = any> extends
   ReactiveComponent<CollectionBrushProps<K, V, S>> {
-  private store: Store<K, V> | null = null;
+  private store: CollectionBrushStore<K, V> | null = null;
 
   @observable
   private result: React.ReactNode[] | undefined;

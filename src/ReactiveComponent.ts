@@ -22,6 +22,8 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   private [__props]: P | undefined;
   private [__rendering] = false;
 
+  abstract get name(): string;
+
   get props(): Readonly<P> {
     return this[__props]!;
   }
@@ -48,11 +50,11 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
   render() {
     this[__rendering] = true;
     if (!this[__proxified]) {
-      this[__props] = proxify(`${this.constructor.name}.props`, this[__props]);
+      this[__props] = proxify(`${this.name}.props`, this[__props]);
       this[__proxified] = true;
     }
     if (this[__autorun] === null) {
-      const name = `${this.constructor.name}.render`;
+      const name = `${this.name}.render`;
       this[__autorun] = Autorun.start(name, (root) => {
         root.fork('construct', (comp) => this.construct && this.construct(comp));
         root.fork('compute', () => {

@@ -1,4 +1,4 @@
-import { CollectionBrush, Store } from './CollectionBrush';
+import { CollectionBrush, CollectionBrushStore } from './CollectionBrush';
 import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
@@ -6,10 +6,14 @@ import * as React from 'react';
 
 interface Item { message: string, count: number }
 
-class ItemBrush extends CollectionBrush<number, Item, string> { }
+class ItemBrush extends CollectionBrush<number, Item, string> {
+  name = 'itemBrush';
+}
 
 class TestComponent extends ReactiveComponent {
-  data = new Store<number, Item>();
+  name = 'testComponent';
+
+  data = new CollectionBrushStore<number, Item>();
 
   count = 0;
 
