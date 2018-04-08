@@ -14,7 +14,8 @@ class TestComponent extends ReactiveComponent {
   count = 0;
 
   @observable
-  getSortKey = (item: Item) => item.message;
+  getSortKey: ((item: Item) => string) | undefined
+    = (item: Item) => item.message;
 
   @observable
   renderItem = (item: Item) => {
@@ -70,6 +71,11 @@ describe('CollectionBrush', () => {
     };
     expect(inst.count).toBe(2);
 
+    expect(item1.count).toBe(2);
+    expect(wrapper.html()).toBe('<ul><li>FOO</li></ul>');
+
+    inst.getSortKey = undefined;
+    expect(inst.count).toBe(3);
     expect(item1.count).toBe(2);
     expect(wrapper.html()).toBe('<ul><li>FOO</li></ul>');
 

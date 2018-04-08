@@ -66,7 +66,7 @@ export class Store<K, V> implements Iterable<[K, V]> {
   }
 }
 
-export interface CollectionBrushProps<K, V, S> {
+export interface CollectionBrushProps<K, V, S = any> {
   name: string;
   data: Store<K, V>;
   render(value: V): React.ReactNode;
