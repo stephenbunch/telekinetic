@@ -48,6 +48,7 @@
     }
   },
   "peerDependencies": {
-    "react": "^16.x"
+    "react": "^16.x",
+    "rxjs": "^5.x"
   }
 }

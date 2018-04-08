@@ -1,9 +1,10 @@
-import { Autorun } from './Autorun';
+import { exclude, once, onceAsync } from './Autorun';
+import { observe, observeAsync } from './observe';
 import { Dependency, CircularDependencyError } from './Dependency';
 
 interface MockPromise<T> extends Promise<T> {
-  resolve(result: T): void;
-  reject(error: Error): void;
+  resolve(result?: T): void;
+  reject(error?: Error): void;
 }
 
 function mockPromise<T>(): MockPromise<T> {
@@ -23,35 +24,35 @@ describe('Autorun', () => {
   it('should run again when the dependency changes', () => {
     const dep = new Dependency('dep');
     let count = 0;
-    const autorun = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       dep.depend();
       count += 1;
-    });
+    }).subscribe();
     dep.changed();
     dep.changed();
     expect(count).toBe(3);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 
   it('should disconnect from previous dependencies on each new run', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
     let count = 0;
-    const autorun = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       if (count === 0) {
         dep1.depend();
       } else {
         dep2.depend();
       }
       count += 1;
-    });
+    }).subscribe();
     dep1.changed();
     expect(count).toBe(2);
     dep1.changed();
     expect(count).toBe(2);
     dep2.changed();
     expect(count).toBe(3);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 
   it('should support nested computations', () => {
@@ -61,7 +62,7 @@ describe('Autorun', () => {
     let countA = 0;
     let countB = 0;
     let countC = 0;
-    const autorun = Autorun.start('main', (comp) => {
+    const sub = observe('main', (comp) => {
       dep1.depend();
       comp.fork('main.sub', (comp) => {
         dep2.depend();
@@ -72,7 +73,7 @@ describe('Autorun', () => {
         countB += 1;
       });
       countA += 1;
-    });
+    }).subscribe();
     dep1.changed();
     expect(countA).toBe(2);
     expect(countB).toBe(2);
@@ -89,18 +90,18 @@ describe('Autorun', () => {
     expect(countA).toBe(3);
     expect(countB).toBe(4);
     expect(countC).toBe(5);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 
   it('should not run when disposed', () => {
     const dep = new Dependency('dep');
     let count = 0;
-    const autorun = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       dep.depend();
       count += 1;
-    });
+    }).subscribe();
     dep.changed();
-    autorun.dispose();
+    sub.unsubscribe();
     dep.changed();
     expect(count).toBe(2);
   });
@@ -112,7 +113,7 @@ describe('Autorun', () => {
     let countB = 0;
     let promiseA = mockPromise<number>();
     let promiseB = mockPromise<number>();
-    const autorun = Autorun.start('main', async (comp) => {
+    const sub = observe('main', async (comp) => {
       dep1.depend();
       await new Promise(resolve => setImmediate(resolve));
       await comp.fork('sub', async () => {
@@ -125,24 +126,24 @@ describe('Autorun', () => {
       countA += 1;
       promiseA.resolve(countA);
       promiseA = mockPromise<number>();
-    });
+    }).subscribe();
     expect(await Promise.all([promiseA, promiseB])).toEqual([1, 1]);
     dep2.changed();
     expect(await promiseB).toBe(2);
     dep1.changed();
     expect(await Promise.all([promiseA, promiseB])).toEqual([2, 3]);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 
   it('should throw an error if a circular dependency is detected', () => {
     const dep = new Dependency('dep');
     let count = 0;
     expect(() => {
-      Autorun.start('main', () => {
+      observe('main', () => {
         count += 1;
         dep.depend();
         dep.changed();
-      });
+      }).subscribe();
     }).toThrow(CircularDependencyError);
     expect(count).toBe(1);
   });
@@ -151,34 +152,36 @@ describe('Autorun', () => {
     it('should not run if the parent has been disposed', () => {
       const dep = new Dependency('dep');
       let count = 0;
-      const autorun = Autorun.start('main', (comp) => {
+      const sub = observe('main', (comp) => {
         comp.fork('sub', () => {
           dep.depend();
           count += 1;
         });
-      });
-      autorun.dispose();
+      }).subscribe();
+      sub.unsubscribe();
       dep.changed();
       expect(count).toBe(1);
     });
 
     it('should forward the return value', () => {
       let result: number | undefined;
-      const autorun = Autorun.start('main', (comp) => {
+      const sub = observe('main', (comp) => {
         result = comp.fork('sub', () => 2);
-      });
+      }).subscribe();
       expect(result).toBe(2);
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
     it('should return undefined if the autorun has been disposed', async () => {
       let result: string | undefined = 'foo';
-      const autorun = Autorun.start('main', async (comp) => {
+      const def = mockPromise();
+      const sub = observeAsync('main', async (comp) => {
         await Promise.resolve();
         result = comp.fork('sub', () => 'bar');
-      });
-      autorun.dispose();
-      await autorun.value;
+        def.resolve();
+      }).subscribe();
+      sub.unsubscribe();
+      await def;
       expect(result).toBeUndefined();
     });
   });
@@ -188,49 +191,53 @@ describe('Autorun', () => {
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
       let called = 0;
+      let def: MockPromise<void> | undefined;
 
-      const autorun = Autorun.start('main', async (comp) => {
+      const sub = observeAsync('main', async (comp) => {
+        def = mockPromise();
         dep1.depend();
         await Promise.resolve();
         comp.continue(() => {
           dep2.depend();
           called += 1;
         });
-      });
+        def.resolve();
+      }).subscribe();
 
-      expect(autorun.value instanceof Promise).toBe(true);
-
-      await autorun.value;
+      await def;
       expect(called).toBe(1);
 
       dep1.changed();
-      await autorun.value;
+      await def;
       expect(called).toBe(2);
 
       dep2.changed();
-      await autorun.value;
+      await def;
       expect(called).toBe(3);
 
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
     it('should not run if the computation has been rerun', async () => {
       const dep = new Dependency('dep');
       let called = 0;
       let nextCalled = 0;
+      let def;
 
-      const autorun = Autorun.start('main', async (comp) => {
+      const sub = observeAsync('main', async (comp) => {
+        def = mockPromise();
         dep.depend();
         called += 1;
         await Promise.resolve();
         comp.continue(() => {
           nextCalled += 1;
         });
-      });
+        def.resolve();
+      }).subscribe();
       expect(called).toBe(1);
       expect(nextCalled).toBe(0);
 
-      await autorun.value;
+      await def;
       expect(nextCalled).toBe(1);
 
       dep.changed();
@@ -238,16 +245,16 @@ describe('Autorun', () => {
       expect(called).toBe(3);
       expect(nextCalled).toBe(1);
 
-      await autorun.value;
+      await def;
       expect(nextCalled).toBe(2);
     });
 
     it('should forward the return value', () => {
       let result: number | undefined;
-      const autorun = Autorun.start('main', (comp) => {
+      const sub = observe('main', (comp) => {
         result = comp.continue(() => 2);
-      });
-      autorun.dispose();
+      }).subscribe();
+      sub.unsubscribe();
       expect(result).toBe(2);
     });
   });
@@ -257,15 +264,15 @@ describe('Autorun', () => {
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
       let called = 0;
-      const autorun = Autorun.start('main', () => {
+      const sub = observe('main', () => {
         dep1.depend();
         dep2.depend();
         called += 1;
-      });
+      }).subscribe();
       expect(called).toBe(1);
 
-      Autorun.once(() => {
-        Autorun.once(() => {
+      once(() => {
+        once(() => {
           dep1.changed();
           dep2.changed();
           expect(called).toBe(1);
@@ -275,11 +282,11 @@ describe('Autorun', () => {
 
       expect(called).toBe(2);
 
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
     it('should forward the return value', () => {
-      expect(Autorun.once(() => 2)).toBe(2);
+      expect(once(() => 2)).toBe(2);
     });
   });
 
@@ -288,15 +295,15 @@ describe('Autorun', () => {
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
       let called = 0;
-      const autorun = Autorun.start('main', () => {
+      const sub = observe('main', () => {
         dep1.depend();
         dep2.depend();
         called += 1;
-      });
+      }).subscribe();
       expect(called).toBe(1);
 
-      await Autorun.onceAsync(async () => {
-        await Autorun.onceAsync(async () => {
+      await onceAsync(async () => {
+        await onceAsync(async () => {
           dep1.changed();
           await Promise.resolve();
           dep2.changed();
@@ -307,25 +314,25 @@ describe('Autorun', () => {
 
       expect(called).toBe(2);
 
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
     it('should forward the return value', async () => {
-      expect(await Autorun.onceAsync(() => Promise.resolve(2))).toBe(2);
+      expect(await onceAsync(() => Promise.resolve(2))).toBe(2);
     });
 
     it('should resume on error', async () => {
       const dep = new Dependency('dep');
       let called = 0;
-      const autorun = Autorun.start('main', () => {
+      const sub = observe('main', () => {
         dep.depend();
         called += 1;
-      });
+      }).subscribe();
       expect(called).toBe(1);
 
       const error = new Error('test');
       try {
-        await Autorun.onceAsync(async () => {
+        await onceAsync(async () => {
           dep.changed();
           dep.changed();
           await Promise.reject(error);
@@ -339,7 +346,7 @@ describe('Autorun', () => {
       dep.changed();
       expect(called).toBe(3);
 
-      autorun.dispose();
+      sub.unsubscribe();
     });
   });
 
@@ -348,13 +355,13 @@ describe('Autorun', () => {
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
       let called = 0;
-      const autorun = Autorun.start('main', () => {
+      const sub = observe('main', () => {
         dep1.depend();
-        Autorun.exclude(() => {
+        exclude(() => {
           dep2.depend();
         });
         called += 1;
-      });
+      }).subscribe();
       expect(called).toBe(1);
 
       dep1.changed();
@@ -363,16 +370,16 @@ describe('Autorun', () => {
       dep2.changed();
       expect(called).toBe(2);
 
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
     it('should forward the return value', () => {
       let result: number | undefined;
-      const autorun = Autorun.start('main', () => {
-        result = Autorun.exclude(() => 2);
-      });
+      const sub = observe('main', () => {
+        result = exclude(() => 2);
+      }).subscribe();
       expect(result).toBe(2);
-      autorun.dispose();
+      sub.unsubscribe();
     });
   });
 
@@ -386,32 +393,33 @@ describe('Autorun', () => {
       let count2 = 0;
       let count3 = 0;
 
-      const auto1 = Autorun.start('main', () => {
+      const sub1 = observe('main', () => {
         count1 += 1;
         dep1.depend();
         dep2.changed();
-      });
+      }).subscribe();
 
-      const auto2 = Autorun.start('main', () => {
+      const sub2 = observe('main', () => {
         count2 += 1;
         dep2.depend();
         dep3.changed();
-      });
+      }).subscribe();
 
-      expect(() => {
-        Autorun.start('main', () => {
-          count3 += 1;
-          dep3.depend();
-          dep1.changed();
-        });
-      }).toThrow(CircularDependencyError);
+      const onError = jest.fn();
+      const sub3 = observe('main', () => {
+        count3 += 1;
+        dep3.depend();
+        dep1.changed();
+      }).subscribe(undefined, onError);
+      expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
 
       expect(count1).toBe(2);
       expect(count2).toBe(2);
       expect(count3).toBe(2);
 
-      auto1.dispose();
-      auto2.dispose();
+      sub1.unsubscribe();
+      sub2.unsubscribe();
+      sub3.unsubscribe();
     });
 
   it('should throw an error when a circular dependency is detected between ' +
@@ -421,63 +429,84 @@ describe('Autorun', () => {
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
 
+      let def1: MockPromise<void> | undefined;
+      let def2: MockPromise<void> | undefined;
+
+      let count1 = 0;
+      let count2 = 0;
+
       // 1. run auto1
       // 2. run auto2 -> dep1 changed -> run auto1 -> dep2 changed -> run auto2
       //        -> dep1 changed -> error!
 
-      const auto1 = Autorun.start('main', async (comp) => {
-        dep1.depend();
-        await sleep();
-        comp.continue(() => {
-          dep2.changed();
-        });
-      });
-      await auto1.value;
+      const sub1 = observeAsync('main', async (comp) => {
+        count1 += 1;
+        def1 = mockPromise();
+        try {
+          dep1.depend();
+          await sleep();
+          comp.continue(() => {
+            dep2.changed();
+          });
+        } finally {
+          def1.resolve();
+        }
+      }).subscribe();
+      expect(count1).toBe(1);
+      await def1;
 
-      const auto2 = Autorun.start('main', async (comp) => {
-        dep2.depend();
-        await sleep();
-        comp.continue(() => {
-          dep1.changed();
-        });
-      });
-      await auto2.value;
-      await auto1.value;
+      const onError = mockPromise();
 
-      let error;
-      try {
-        await auto2.value;
-      } catch (err) {
-        error = err;
-      }
-      expect(error instanceof Error).toBe(true);
+      const sub2 = observeAsync('main', async (comp) => {
+        count2 += 1;
+        def2 = mockPromise();
+        try {
+          dep2.depend();
+          await sleep();
+          comp.continue(() => {
+            dep1.changed();
+          });
+        } finally {
+          def2.resolve();
+        }
+      }).subscribe(undefined, (err) => onError.resolve(err));
+      expect(count2).toBe(1);
+      await def2;
+      expect(count1).toBe(2);
+      await def1;
 
-      auto1.dispose();
-      auto2.dispose();
+      expect(count2).toBe(2);
+      await def2;
+      const err = await onError;
+      expect(err).toBeInstanceOf(CircularDependencyError);
+
+      sub1.unsubscribe();
+      sub2.unsubscribe();
     });
 
   it('should throw an error when a circular dependency is detected between ' +
     'multiple segments of the same async autorun', async () => {
       const dep = new Dependency('dep');
       let count = 0;
-      const autorun = Autorun.start('main', async (comp) => {
-        count += 1;
-        dep.depend();
-        await Promise.resolve();
-        comp.continue(() => {
-          dep.changed();
-        });
-      });
+      const def = mockPromise();
+      const onError = jest.fn();
+      const sub = observeAsync('main', async (comp) => {
+        try {
+          count += 1;
+          dep.depend();
+          await Promise.resolve();
+          comp.continue(() => {
+            dep.changed();
+          });
+        } finally {
+          def.resolve();
+        }
+      }).subscribe(undefined, onError);
 
-      let error;
-      try {
-        await autorun.value;
-      } catch (err) {
-        error = err;
-      }
-      expect(error instanceof CircularDependencyError).toBe(true);
+      await def;
+      expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
       expect(count).toBe(1);
-      autorun.dispose();
+      sub.unsubscribe();
     });
 
   it('should throw an error when a circular dependency is detected between two ' +
@@ -486,21 +515,21 @@ describe('Autorun', () => {
       const dep2 = new Dependency('dep2');
       let count1 = 0;
       let count2 = 0;
-      expect(() => {
-        Autorun.start('main', (comp) => {
-          comp.fork('sub1', () => {
-            count1 += 1;
-            dep1.depend();
-            dep2.changed();
-          });
-
-          comp.fork('sub2', () => {
-            count2 += 1;
-            dep2.depend();
-            dep1.changed();
-          });
+      const onError = jest.fn();
+      const sub = observe('main', (comp) => {
+        comp.fork('sub1', () => {
+          count1 += 1;
+          dep1.depend();
+          dep2.changed();
         });
-      }).toThrow(CircularDependencyError);
+
+        comp.fork('sub2', () => {
+          count2 += 1;
+          dep2.depend();
+          dep1.changed();
+        });
+      }).subscribe(undefined, onError);
+      expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
       expect(count1).toBe(2);
       expect(count2).toBe(2);
     });
@@ -518,7 +547,7 @@ describe('Autorun', () => {
       const result = new Dependency('results');
       let count1 = 0;
       let count2 = 0;
-      Autorun.start('main', (comp) => {
+      const sub = observe('main', (comp) => {
         comp.fork('sub1', () => {
           count1 += 1;
           nodes.depend();
@@ -528,7 +557,7 @@ describe('Autorun', () => {
           count2 += 1;
           result.depend();
         });
-      });
+      }).subscribe();
       expect(count1).toBe(1);
       expect(count2).toBe(1);
 
@@ -539,5 +568,7 @@ describe('Autorun', () => {
       nodes.changed();
       expect(count1).toBe(3);
       expect(count2).toBe(3);
+
+      sub.unsubscribe();
     });
 });

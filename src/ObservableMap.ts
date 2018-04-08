@@ -1,4 +1,4 @@
-import { Autorun } from './Autorun';
+import { once } from './Autorun';
 import { Dependency } from './Dependency';
 import { KeyedDependency } from './KeyedDependency';
 
@@ -46,7 +46,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
     const isNew = !this.map.has(key);
     if (value !== this.map.get(key)) {
       this.map.set(key, value);
-      Autorun.once(() => {
+      once(() => {
         this.dependencies.changed(key);
         if (isNew) {
           this.keysDependency.changed();
@@ -60,7 +60,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
   delete(key: K): boolean {
     if (this.map.has(key)) {
       this.map.delete(key);
-      Autorun.once(() => {
+      once(() => {
         this.dependencies.changed(key);
         this.keysDependency.changed();
         this.valuesDependency.changed();
@@ -101,7 +101,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
     if (this.map.size > 0) {
       const keys = Array.from(this.map.keys());
       this.map.clear();
-      Autorun.once(() => {
+      once(() => {
         this.keysDependency.changed();
         this.valuesDependency.changed();
         for (const key of keys) {

@@ -1,12 +1,12 @@
-import { Autorun, ReentrancyError } from './Autorun';
-import { ComputationClass } from './Computation';
+import { getCurrent, ReentrancyError } from './Autorun';
+import { ComputationRefClass } from './ComputationRef';
 import { OrderedSet } from './OrderedSet';
 import { Logger } from './Logger';
 
 export class CircularDependencyError extends Error { }
 
 export class Dependency {
-  private computations = new OrderedSet<ComputationClass>();
+  private refs = new OrderedSet<ComputationRefClass>();
   readonly name: string;
 
   constructor(name: string) {
@@ -14,30 +14,32 @@ export class Dependency {
   }
 
   depend(): void {
-    if (Autorun.current && Autorun.current.isAlive) {
-      const comp = Autorun.current.computation!;
-      this.computations.push(comp);
-      if (comp.dependencies) {
-        comp.dependencies.add(this.name);
+    const computation = getCurrent();
+    if (computation && computation.isAlive) {
+      const ref = computation.ref!;
+      this.refs.push(ref);
+      if (ref.dependencies) {
+        ref.dependencies.add(this.name);
       }
-      Logger.current.trace(`${Autorun.current.name} depends on ${this.name}.`);
+      Logger.current.trace(`${computation.name} depends on ${this.name}.`);
     }
   }
 
   changed(): void {
     Logger.current.trace(`${this.name} changed.`);
-    const computations = this.computations;
-    this.computations = new OrderedSet<ComputationClass>();
-    for (const computation of computations) {
-      if (computation.isAlive) {
-        if (computation.parents!.has(Autorun.current!)) {
+    const refs = this.refs;
+    this.refs = new OrderedSet<ComputationRefClass>();
+    const current = getCurrent();
+    for (const ref of refs) {
+      if (ref.isAlive) {
+        if (ref.parents!.has(current!)) {
           throw new CircularDependencyError(
             `${this.name} was changed in autorun ` +
-            `${Autorun.current!.name} after being depended on.`
+            `${current!.name} after being depended on.`
           );
         }
         try {
-          computation.autorun!.rerun();
+          ref.computation!.rerun();
         } catch (err) {
           // If we get a reentrancy error, it's because another autorun which
           // depended on this value (directly or indirectly) triggered a change

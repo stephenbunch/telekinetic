@@ -1,4 +1,4 @@
-import { Computation } from './Computation';
+import { ComputationRef } from './ComputationRef';
 import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
@@ -20,7 +20,7 @@ class TestComponent extends ReactiveComponent<Props> {
   @observable
   text = '';
 
-  construct(computation: Computation) {
+  construct(computation: ComputationRef) {
     this.text = this.message + this.props.end;
   }
 

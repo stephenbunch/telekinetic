@@ -1,28 +1,25 @@
-import { Autorun, IAutorun, RunFunction } from './Autorun';
+import { ComputationClass, Computation, RunFunction } from './Autorun';
 import { FrozenSet } from './FrozenSet';
 
-export interface Computation {
-  readonly isFirstRun: boolean;
+export interface ComputationRef {
   readonly isAlive: boolean;
   continue<R>(callback: () => R): R | undefined;
   fork<R>(name: string, runFunc: RunFunction<R>): R | undefined;
   collectDependencies(): Set<string>;
 }
 
-export class ComputationClass {
-  readonly isFirstRun = true;
-  autorun: IAutorun | null;
-  parents: FrozenSet<IAutorun> | null;
-  stack: FrozenSet<IAutorun> | null;
+export class ComputationRefClass {
+  computation: Computation | null;
+  parents: FrozenSet<Computation> | null;
+  stack: FrozenSet<Computation> | null;
   dependencies: Set<string> | undefined;
 
-  constructor(autorun: IAutorun, parent: ComputationClass | null,
-    stack: FrozenSet<IAutorun>) {
-    this.autorun = autorun;
+  constructor(computation: Computation, stack: FrozenSet<Computation>) {
+    this.computation = computation;
     this.stack = stack;
-    if (parent) {
-      const parents = new Set(parent.parents!);
-      parents.add(parent.autorun!);
+    if (computation.parentRef) {
+      const parents = new Set(computation.parentRef.parents!);
+      parents.add(computation.parentRef.computation!);
       this.parents = new FrozenSet(parents);
     } else {
       this.parents = new FrozenSet();
@@ -30,19 +27,20 @@ export class ComputationClass {
   }
 
   get isAlive(): boolean {
-    return this.autorun !== null;
+    return this.computation !== null;
   }
 
   continue<R>(callback: () => R): R | undefined {
-    if (this.autorun) {
-      return this.autorun.continue(callback);
+    if (this.computation) {
+      return this.computation.continue(callback);
     }
     return undefined;
   }
 
   fork<R>(name: string, runFunc: RunFunction<R>): R | undefined {
-    if (this.autorun) {
-      const autorun = new Autorun(`${this.autorun.name}.${name}`, runFunc, this);
+    if (this.computation) {
+      const autorun = new ComputationClass(
+        `${this.computation.name}.${name}`, runFunc, this);
       try {
         return autorun.rerun();
       } catch (err) {
@@ -54,12 +52,12 @@ export class ComputationClass {
   }
 
   dispose() {
-    this.autorun = null;
+    this.computation = null;
     this.parents = null;
     this.stack = null;
   }
 
-  reincarnate(stack: FrozenSet<IAutorun>): ComputationClass {
+  reincarnate(stack: FrozenSet<Computation>): ComputationRefClass {
     // Reincarnate essentially clones the computation object and nulls the
     // previous object.
     // A computation is like a surrogate. Rather than track dependencies on the
@@ -67,9 +65,9 @@ export class ComputationClass {
     // that when a computation is rerun, old dependencies can be cleaned up in
     // constant time. The actual cleanup occurs when a dependency is changed.
     // When a dependency is changed, only live computations are rerun.
-    const comp = Object.create(ComputationClass.prototype);
-    comp.isFirstRun = false;
-    comp.autorun = this.autorun;
+    const comp =
+      Object.create(ComputationRefClass.prototype) as ComputationRefClass;
+    comp.computation = this.computation;
     comp.parents = this.parents;
     comp.stack = stack;
     this.dispose();

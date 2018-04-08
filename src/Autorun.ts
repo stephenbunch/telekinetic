@@ -1,12 +1,12 @@
-import { ComputationClass, Computation } from './Computation';
+import { ComputationRefClass, ComputationRef } from './ComputationRef';
 import { FrozenSet } from './FrozenSet';
 import { Logger } from './Logger';
 import { OrderedSet } from './OrderedSet';
 
-let currentAutorun: IAutorun | null = null;
+let currentComputation: Computation | null = null;
 let suspendCount = 0;
-let suspendedAutoruns = new OrderedSet<IAutorun>();
-let autorunStack = new Set<IAutorun>();
+let suspendedAutoruns = new OrderedSet<Computation>();
+let computationStack = new Set<Computation>();
 
 function suspend(): void {
   suspendCount += 1;
@@ -17,7 +17,7 @@ function resume(): void {
     suspendCount -= 1;
     if (suspendCount === 0) {
       const autoruns = suspendedAutoruns;
-      suspendedAutoruns = new OrderedSet<IAutorun>();
+      suspendedAutoruns = new OrderedSet<Computation>();
       for (const autorun of autoruns) {
         autorun.rerun();
       }
@@ -27,75 +27,64 @@ function resume(): void {
 
 export class ReentrancyError extends Error { }
 
-export interface IAutorun {
+export interface Computation {
   readonly name: string;
   readonly isAlive: boolean;
-  readonly computation: ComputationClass | null;
-  readonly parent: IAutorun | null;
+  readonly ref: ComputationRefClass | null;
+  readonly parentRef: ComputationRefClass | null;
   continue<R>(callback: () => R): R;
   exec<R>(callback: () => R): R;
   rerun(): void;
   dispose(): void;
 }
 
-export type RunFunction<T> = (computation: Computation) => T;
+export type RunFunction<T> = (computation: ComputationRef) => T;
 
-export class Autorun<T> implements IAutorun {
+export function once<TResult>(callback: () => TResult): TResult {
+  try {
+    suspend();
+    return callback();
+  } finally {
+    resume();
+  }
+}
+
+export function onceAsync<TResult>(
+  callback: () => Promise<TResult>): Promise<TResult> {
+  suspend();
+  return callback().then(result => {
+    resume();
+    return result;
+  }, (err) => {
+    resume();
+    throw err;
+  });
+}
+
+export function exclude<TResult>(callback: () => TResult): TResult {
+  const current = currentComputation;
+  currentComputation = null;
+  const result = callback();
+  currentComputation = current;
+  return result;
+}
+
+export function getCurrent(): Computation | null {
+  return currentComputation;
+}
+
+export class ComputationClass<T> implements Computation {
   readonly name: string;
   private func: RunFunction<T> | null;
-  computation: ComputationClass | null = null;
-  private parentComputation: ComputationClass | null;
+  ref: ComputationRefClass | null = null;
+  parentRef: ComputationRefClass | null;
   value: T | null = null;
 
-  static get current(): IAutorun | null {
-    return currentAutorun;
-  }
-
-  static start<TRunResult>(name: string,
-    runFunc: RunFunction<TRunResult>): Autorun<TRunResult> {
-    const autorun = new Autorun<TRunResult>(name, runFunc);
-    autorun.rerun();
-    return autorun;
-  }
-
-  static once<TResult>(callback: () => TResult): TResult {
-    try {
-      suspend();
-      return callback();
-    } finally {
-      resume();
-    }
-  }
-
-  static onceAsync<TResult>(
-    callback: () => Promise<TResult>): Promise<TResult> {
-    suspend();
-    return callback().then(result => {
-      resume();
-      return result;
-    }, (err) => {
-      resume();
-      throw err;
-    });
-  }
-
-  static exclude<TResult>(callback: () => TResult): TResult {
-    const current = currentAutorun;
-    currentAutorun = null;
-    const result = callback();
-    currentAutorun = current;
-    return result;
-  }
-
   constructor(name: string, runFunc: RunFunction<T>,
-    parentComputation: ComputationClass | null = null) {
+    parentComputation: ComputationRefClass | null = null) {
     this.name = name;
     this.func = runFunc;
-    this.parentComputation = parentComputation;
-  }
-
-  get parent(): IAutorun | null {
-    return this.parentComputation && this.parentComputation.autorun;
+    this.parentRef = parentComputation;
   }
 
   get isAlive(): boolean {
@@ -104,32 +93,31 @@ export class Autorun<T> implements IAutorun {
 
   dispose(): void {
     this.func = null;
-    if (this.computation) {
-      this.computation.dispose();
-      this.computation = null;
+    if (this.ref) {
+      this.ref.dispose();
+      this.ref = null;
     }
-    this.parentComputation = null;
+    this.parentRef = null;
   }
 
   rerun(): T | undefined {
     let result: T | undefined;
     if (this.func) {
-      if (this.parentComputation && !this.parentComputation.isAlive) {
+      if (this.parentRef && !this.parentRef.isAlive) {
         this.dispose();
       } else if (suspendCount > 0) {
         suspendedAutoruns.push(this);
       } else {
         Logger.current.trace(`Starting ${this.name}.`);
         result = this.exec(() => {
-          const stack = new FrozenSet(autorunStack);
-          if (this.computation) {
-            this.computation = this.computation.reincarnate(stack);
+          const stack = new FrozenSet(computationStack);
+          if (this.ref) {
+            this.ref = this.ref.reincarnate(stack);
           } else {
-            this.computation = new ComputationClass(this,
-              this.parentComputation, stack);
+            this.ref = new ComputationRefClass(this, stack);
           }
           try {
-            this.value = this.func!(this.computation);
+            this.value = this.func!(this.ref);
           } catch (err) {
             this.dispose();
             throw err;
@@ -143,36 +131,37 @@ export class Autorun<T> implements IAutorun {
   }
 
   continue<R>(callback: () => R): R {
-    const current = currentAutorun;
-    const currentStack = autorunStack;
-    currentAutorun = this;
-    autorunStack = new Set(this.computation!.stack!);
+    const current = currentComputation;
+    const currentStack = computationStack;
+    currentComputation = this;
+    computationStack = new Set(this.ref!.stack!);
     try {
       return callback();
     } finally {
-      currentAutorun = current;
-      autorunStack = currentStack;
+      currentComputation = current;
+      computationStack = currentStack;
     }
   }
 
   exec<R>(callback: () => R): R {
-    if (currentAutorun) {
-      if (currentAutorun === this || autorunStack.has(currentAutorun)) {
+    if (currentComputation) {
+      if (currentComputation === this ||
+        computationStack.has(currentComputation)) {
         throw new ReentrancyError(
-          `Attempted to reenter ${currentAutorun.name}. Reentrancy not ` +
+          `Attempted to reenter ${currentComputation.name}. Reentrancy not ` +
           `allowed.`
         );
       }
-      autorunStack.add(currentAutorun!);
+      computationStack.add(currentComputation!);
     }
-    const current = currentAutorun;
-    currentAutorun = this;
+    const current = currentComputation;
+    currentComputation = this;
     try {
       return callback();
     } finally {
-      currentAutorun = current;
-      if (currentAutorun) {
-        autorunStack.delete(currentAutorun);
+      currentComputation = current;
+      if (currentComputation) {
+        computationStack.delete(currentComputation);
       }
     }
   }

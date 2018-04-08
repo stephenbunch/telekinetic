@@ -1,6 +1,6 @@
-import { Autorun } from './Autorun';
+import { exclude, once } from './Autorun';
 import { bound } from './bound';
-import { Computation } from './Computation';
+import { ComputationRef } from './ComputationRef';
 import { Event, EventController } from './Event';
 import { observable } from './observable';
 import { ObservableMap } from './ObservableMap';
@@ -90,9 +90,9 @@ export abstract class CollectionBrush<K, V, S = any> extends
   @observable
   private renderResults: ObservableMap<K, React.ReactNode> | undefined;
 
-  construct(comp: Computation) {
+  construct(comp: ComputationRef) {
     // This will rereun anytime this.props.data changes.
-    Autorun.once(() => {
+    once(() => {
       if (this.store) {
         this.store.onAdd.removeListener(this.onAdd);
         this.store.onDelete.removeListener(this.onDelete);
@@ -116,7 +116,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
       comp.fork('getSortKeys', () => {
         // This will rerun anytime this.props.sort changes.
-        Autorun.once(() => {
+        once(() => {
           if (this.props.sort) {
             for (const key of this.store!.keys()) {
               this.addSortKeyForEntry(key);
@@ -127,7 +127,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
       comp.fork('renderAllEntries', (comp) => {
         // This will rerun anytime this.props.render changes.
-        Autorun.once(() => {
+        once(() => {
           // Make sure the prop is read even if there are no entries in the
           // store initially.
           this.props.render;
@@ -161,7 +161,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onAdd([key, value]: [K, V]) {
-    Autorun.once(() => {
+    once(() => {
       this.keys!.add(key);
       this.addSortKeyForEntry(key);
       this.renderEntry(key, value);
@@ -170,7 +170,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onDelete([key, value]: [K, V]) {
-    Autorun.once(() => {
+    once(() => {
       this.keys!.delete(key);
       this.sortKeys!.delete(key);
       this.renderResults!.delete(key);
@@ -179,7 +179,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onUpdate([key, value]: [K, V]) {
-    Autorun.once(() => {
+    once(() => {
       this.addSortKeyForEntry(key);
       this.renderEntry(key, value);
     });
@@ -197,7 +197,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
     if (React.isValidElement(node)) {
       node = React.cloneElement(node, { key });
     }
-    const renderResults = Autorun.exclude(() => this.renderResults!);
+    const renderResults = exclude(() => this.renderResults!);
     renderResults.set(key, node);
   }
 }

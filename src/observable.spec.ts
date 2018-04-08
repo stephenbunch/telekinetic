@@ -1,4 +1,4 @@
-import { Autorun } from './Autorun';
+import { observe } from './observe';
 import { observable } from './observable';
 
 describe('@observable', () => {
@@ -9,12 +9,12 @@ describe('@observable', () => {
     }
     const obj = new Test();
     let result = 0;
-    const autorun = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       result = obj.foo;
-    });
+    }).subscribe();
     obj.foo = 3;
     expect(result).toBe(3);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 
   it('should setup dependency tracking on static members', () => {
@@ -23,11 +23,11 @@ describe('@observable', () => {
       static bar = 2;
     }
     let result = 0;
-    const autorun = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       result = Test.bar;
-    });
+    }).subscribe();
     Test.bar = 3;
     expect(result).toBe(3);
-    autorun.dispose();
+    sub.unsubscribe();
   });
 });

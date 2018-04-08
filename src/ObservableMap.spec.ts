@@ -1,4 +1,4 @@
-import { Autorun } from './Autorun';
+import { observe } from './observe';
 import { ObservableMap } from './ObservableMap';
 
 describe('ObservableMap', () => {
@@ -6,10 +6,10 @@ describe('ObservableMap', () => {
     const map = new ObservableMap<number, string>('map');
     let size = null;
     let called = 0;
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       called += 1;
       size = map.size;
-    });
+    }).subscribe();
     map.set(1, 'hello');
     expect(size).toBe(1);
     map.set(2, 'world');
@@ -17,32 +17,32 @@ describe('ObservableMap', () => {
     // Changing the value of a key should not trigger a change.
     map.set(1, 'foo');
     expect(called).toBe(3);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when getting a value', () => {
     const map = new ObservableMap<string, string>('map');
     let called = 0;
     let value = null;
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       called += 1;
       value = map.get('foo');
-    });
+    }).subscribe();
     map.set('foo', 'bar');
     expect(value).toBe('bar');
     expect(called).toBe(2);
     // Setting a different key should not trigger a change.
     map.set('hello', 'world');
     expect(called).toBe(2);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when getting the keys', () => {
     const map = new ObservableMap<string, number>('map');
     const output: Array<Array<string>> = [];
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.keys()));
-    });
+    }).subscribe();
     map.set('foo', 2);
     map.set('bar', 2);
     // Changing the value of a key should not trigger a change.
@@ -54,15 +54,15 @@ describe('ObservableMap', () => {
       ['foo', 'bar'],
       ['bar'],
     ]);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when getting the values', () => {
     const map = new ObservableMap<string, number>('map');
     const output: Array<Array<number>> = [];
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.values()));
-    });
+    }).subscribe();
     map.set('foo', 2);
     map.set('bar', 2);
     map.set('bar', 42);
@@ -74,15 +74,15 @@ describe('ObservableMap', () => {
       [2, 42],
       [42],
     ]);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when getting the entries', () => {
     const map = new ObservableMap<string, number>('map');
     const output: Array<Array<[string, number]>> = [];
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.entries()));
-    });
+    }).subscribe();
     map.set('foo', 2);
     map.set('bar', 2);
     map.set('bar', 42);
@@ -94,15 +94,15 @@ describe('ObservableMap', () => {
       [['foo', 2], ['bar', 42]],
       [['bar', 42]],
     ]);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when getting the iterator', () => {
     const map = new ObservableMap<string, number>('map');
     const output: Array<Array<[string, number]>> = [];
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map[Symbol.iterator]()));
-    });
+    }).subscribe();
     map.set('foo', 2);
     map.set('bar', 2);
     map.set('bar', 42);
@@ -114,17 +114,17 @@ describe('ObservableMap', () => {
       [['foo', 2], ['bar', 42]],
       [['bar', 42]],
     ]);
-    auto.dispose();
+    sub.unsubscribe();
   });
 
   it('should track a dependency when determining whether a key exists', () => {
     const map = new ObservableMap<string, number>('map');
     let has = null;
     let called = 0;
-    const auto = Autorun.start('main', () => {
+    const sub = observe('main', () => {
       called += 1;
       has = map.has('foo');
-    });
+    }).subscribe();
     expect(has).toBe(false);
     map.set('foo', 2);
     expect(has).toBe(true);
@@ -133,6 +133,6 @@ describe('ObservableMap', () => {
     expect(called).toBe(2);
     map.delete('foo');
     expect(has).toBe(false);
-    auto.dispose();
+    sub.unsubscribe();
   });
 });
