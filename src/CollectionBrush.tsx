@@ -1,4 +1,5 @@
-import { exclude, batchUpdate } from './Computation';
+import { exclude } from './Computation';
+import { batchUpdate } from './batchUpdate';
 import { bound } from './bound';
 import { ComputationRef } from './ComputationRef';
 import { Event, EventController } from './Event';
@@ -113,44 +114,44 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
       // This map will store the sortKey of each entry.
       this.sortKeys = new ObservableMap(`${this.props.name}.sortKeys`);
+    });
 
-      comp.fork('getSortKeys', () => {
-        // This will rerun anytime this.props.sort changes.
-        batchUpdate(() => {
-          if (this.props.sort) {
-            for (const key of this.store!.keys()) {
-              this.addSortKeyForEntry(key);
-            }
-          }
-        });
-      });
-
-      comp.fork('renderAllEntries', (comp) => {
-        // This will rerun anytime this.props.render changes.
-        batchUpdate(() => {
-          // Make sure the prop is read even if there are no entries in the
-          // store initially.
-          this.props.render;
-          for (const [key, value] of this.store!) {
-            this.renderEntry(key, value);
-          }
-        });
-      });
-
-      comp.fork('sortEntriesUsingSortKeys', (comp) => {
-        // This will rerun anytime the this.keys or this.sortKeys change.
-        const sortedKeys = new OrderedSet(this.keys);
+    comp.fork('getSortKeys', () => {
+      // This will rerun anytime this.props.sort changes.
+      batchUpdate(() => {
         if (this.props.sort) {
-          sortedKeys.sort((key: K) => this.sortKeys!.get(key)!);
-          if (this.props.descending) {
-            sortedKeys.reverse();
+          for (const key of this.store!.keys()) {
+            this.addSortKeyForEntry(key);
           }
         }
-        comp.fork('useSortedKeysToMakeFinalResult', () => {
-          // This will rerun anytime a result in this.renderResults changes.
-          this.result = sortedKeys.toArray().map((key) =>
-            this.renderResults!.get(key));
-        });
+      });
+    });
+
+    comp.fork('renderAllEntries', (comp) => {
+      // This will rerun anytime this.props.render changes.
+      batchUpdate(() => {
+        // Make sure the prop is read even if there are no entries in the
+        // store initially.
+        this.props.render;
+        for (const [key, value] of this.store!) {
+          this.renderEntry(key, value);
+        }
+      });
+    });
+
+    comp.fork('sortEntriesUsingSortKeys', (comp) => {
+      // This will rerun anytime the this.keys or this.sortKeys change.
+      const sortedKeys = new OrderedSet(this.keys);
+      if (this.props.sort) {
+        sortedKeys.sort((key: K) => this.sortKeys!.get(key)!);
+        if (this.props.descending) {
+          sortedKeys.reverse();
+        }
+      }
+      comp.fork('useSortedKeysToMakeFinalResult', () => {
+        // This will rerun anytime a result in this.renderResults changes.
+        this.result = sortedKeys.toArray().map((key) =>
+          this.renderResults!.get(key));
       });
     });
   }

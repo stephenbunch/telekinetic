@@ -1,4 +1,5 @@
-import { exclude, batchUpdate, batchUpdateAsync } from './Computation';
+import { exclude } from './Computation';
+import { DisposedError } from './DisposedError';
 import { observe, observeAsync } from './observe';
 import { Dependency, CircularDependencyError } from './Dependency';
 
@@ -20,8 +21,10 @@ function mockPromise<T>(): MockPromise<T> {
   return mock;
 }
 
-describe('Autorun', () => {
-  it('should run again when the dependency changes', () => {
+const sleep = () => new Promise((resolve) => setTimeout(resolve, 0));
+
+describe('autorun', () => {
+  it('should run again when a dependency changes', () => {
     const dep = new Dependency('dep');
     let count = 0;
     const sub = observe('main', () => {
@@ -93,7 +96,7 @@ describe('Autorun', () => {
     sub.unsubscribe();
   });
 
-  it('should not run when disposed', () => {
+  it('should not rerun when disposed', () => {
     const dep = new Dependency('dep');
     let count = 0;
     const sub = observe('main', () => {
@@ -106,7 +109,7 @@ describe('Autorun', () => {
     expect(count).toBe(2);
   });
 
-  it('should work with async computations', async () => {
+  it('should support async computations', async () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
     let countA = 0;
@@ -171,19 +174,6 @@ describe('Autorun', () => {
       expect(result).toBe(2);
       sub.unsubscribe();
     });
-
-    it('should return undefined if the autorun has been disposed', async () => {
-      let result: string | undefined = 'foo';
-      const def = mockPromise();
-      const sub = observeAsync('main', async (comp) => {
-        await Promise.resolve();
-        result = comp.fork('sub', () => 'bar');
-        def.resolve();
-      }).subscribe();
-      sub.unsubscribe();
-      await def;
-      expect(result).toBeUndefined();
-    });
   });
 
   describe('the continue function', () => {
@@ -229,9 +219,11 @@ describe('Autorun', () => {
         dep.depend();
         called += 1;
         await Promise.resolve();
-        comp.continue(() => {
-          nextCalled += 1;
-        });
+        if (comp.isAlive) {
+          comp.continue(() => {
+            nextCalled += 1;
+          });
+        }
         def.resolve();
       }).subscribe();
       expect(called).toBe(1);
@@ -256,97 +248,6 @@ describe('Autorun', () => {
       }).subscribe();
       sub.unsubscribe();
       expect(result).toBe(2);
-    });
-  });
-
-  describe('the once function', () => {
-    it('should suspend reruns', () => {
-      const dep1 = new Dependency('dep1');
-      const dep2 = new Dependency('dep2');
-      let called = 0;
-      const sub = observe('main', () => {
-        dep1.depend();
-        dep2.depend();
-        called += 1;
-      }).subscribe();
-      expect(called).toBe(1);
-
-      batchUpdate(() => {
-        batchUpdate(() => {
-          dep1.changed();
-          dep2.changed();
-          expect(called).toBe(1);
-        });
-        expect(called).toBe(1);
-      });
-
-      expect(called).toBe(2);
-
-      sub.unsubscribe();
-    });
-
-    it('should forward the return value', () => {
-      expect(batchUpdate(() => 2)).toBe(2);
-    });
-  });
-
-  describe('the onceAsync function', () => {
-    it('should suspend reruns', async () => {
-      const dep1 = new Dependency('dep1');
-      const dep2 = new Dependency('dep2');
-      let called = 0;
-      const sub = observe('main', () => {
-        dep1.depend();
-        dep2.depend();
-        called += 1;
-      }).subscribe();
-      expect(called).toBe(1);
-
-      await batchUpdateAsync(async () => {
-        await batchUpdateAsync(async () => {
-          dep1.changed();
-          await Promise.resolve();
-          dep2.changed();
-          expect(called).toBe(1);
-        });
-        expect(called).toBe(1);
-      });
-
-      expect(called).toBe(2);
-
-      sub.unsubscribe();
-    });
-
-    it('should forward the return value', async () => {
-      expect(await batchUpdateAsync(() => Promise.resolve(2))).toBe(2);
-    });
-
-    it('should resume on error', async () => {
-      const dep = new Dependency('dep');
-      let called = 0;
-      const sub = observe('main', () => {
-        dep.depend();
-        called += 1;
-      }).subscribe();
-      expect(called).toBe(1);
-
-      const error = new Error('test');
-      try {
-        await batchUpdateAsync(async () => {
-          dep.changed();
-          dep.changed();
-          await Promise.reject(error);
-          dep.changed();
-        });
-      } catch (err) {
-        expect(err).toBe(error);
-      }
-      expect(called).toBe(2);
-
-      dep.changed();
-      expect(called).toBe(3);
-
-      sub.unsubscribe();
     });
   });
 
@@ -424,8 +325,6 @@ describe('Autorun', () => {
 
   it('should throw an error when a circular dependency is detected between ' +
     'async autoruns', async () => {
-      const sleep = () => new Promise((resolve) => setTimeout(resolve, 0));
-
       const dep1 = new Dependency('dep1');
       const dep2 = new Dependency('dep2');
 

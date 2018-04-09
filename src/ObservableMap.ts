@@ -1,4 +1,4 @@
-import { batchUpdate } from './Computation';
+import { batchUpdate } from './batchUpdate';
 import { Dependency } from './Dependency';
 import { KeyedDependency } from './KeyedDependency';
 

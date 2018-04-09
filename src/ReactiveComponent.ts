@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { batchUpdate, exclude, Computation } from './Computation';
+import { exclude, Computation } from './Computation';
+import { batchUpdate } from './batchUpdate';
 import { observe } from './observe';
 import { ComputationRef } from './ComputationRef';
 import { ObservableProxy } from './ObservableProxy';

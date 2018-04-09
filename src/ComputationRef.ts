@@ -1,10 +1,13 @@
 import { ComputationClass, Computation, RunFunction } from './Computation';
 import { FrozenSet } from './FrozenSet';
+import { DisposedError } from './DisposedError';
+
+const DISPOSED = 'The computation reference has been disposed.';
 
 export interface ComputationRef {
   readonly isAlive: boolean;
-  continue<R>(callback: () => R): R | undefined;
-  fork<R>(name: string, runFunc: RunFunction<R>): R | undefined;
+  continue<T>(callback: () => T): T;
+  fork<T>(name: string, runFunc: RunFunction<T>): T;
   collectDependencies(): Set<string>;
 }
 
@@ -30,25 +33,21 @@ export class ComputationRefClass {
     return this.computation !== null;
   }
 
-  continue<R>(callback: () => R): R | undefined {
+  continue<T>(callback: () => T): T {
     if (this.computation) {
       return this.computation.continue(callback);
+    } else {
+      throw new DisposedError(DISPOSED);
     }
-    return undefined;
   }
 
-  fork<R>(name: string, runFunc: RunFunction<R>): R | undefined {
+  fork<T>(name: string, runFunc: RunFunction<T>): T {
     if (this.computation) {
-      const autorun = new ComputationClass(
-        `${this.computation.name}.${name}`, runFunc, this);
-      try {
-        return autorun.rerun();
-      } catch (err) {
-        autorun.dispose();
-        throw err;
-      }
+      const fullName = `${this.computation.name}.${name}`;
+      return new ComputationClass(fullName, runFunc, this).run();
+    } else {
+      throw new DisposedError(DISPOSED);
     }
-    return undefined;
   }
 
   dispose() {

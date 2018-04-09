@@ -1,29 +1,34 @@
 import { ComputationRefClass, ComputationRef } from './ComputationRef';
+import { DisposedError } from './DisposedError';
 import { FrozenSet } from './FrozenSet';
 import { Logger } from './Logger';
 import { OrderedSet } from './OrderedSet';
 
 let currentComputation: Computation | null = null;
 let suspendCount = 0;
-let suspendedAutoruns = new OrderedSet<Computation>();
+let suspendedComputations = new OrderedSet<Computation>();
 let computationStack = new Set<Computation>();
 
-function suspend(): void {
+const DISPOSED = 'The computation has been disposed.';
+
+export function suspend(): void {
   suspendCount += 1;
 }
 
-function resume(): void {
+export function resume(): void {
   if (suspendCount > 0) {
     suspendCount -= 1;
     if (suspendCount === 0) {
-      const autoruns = suspendedAutoruns;
-      suspendedAutoruns = new OrderedSet<Computation>();
-      for (const autorun of autoruns) {
-        autorun.rerun();
+      const computations = suspendedComputations;
+      suspendedComputations = new OrderedSet<Computation>();
+      for (const computation of computations) {
+        computation.rerun();
       }
     }
   }
 }
+
+export class ComputationError extends Error { }
 
 export class ReentrancyError extends Error { }
 
@@ -33,33 +38,11 @@ export interface Computation {
   readonly ref: ComputationRefClass | null;
   readonly parentRef: ComputationRefClass | null;
   continue<R>(callback: () => R): R;
-  exec<R>(callback: () => R): R;
   rerun(): void;
   dispose(): void;
 }
 
 export type RunFunction<T> = (computation: ComputationRef) => T;
-
-export function batchUpdate<TResult>(callback: () => TResult): TResult {
-  try {
-    suspend();
-    return callback();
-  } finally {
-    resume();
-  }
-}
-
-export function batchUpdateAsync<TResult>(
-  callback: () => Promise<TResult>): Promise<TResult> {
-  suspend();
-  return callback().then(result => {
-    resume();
-    return result;
-  }, (err) => {
-    resume();
-    throw err;
-  });
-}
 
 export function exclude<TResult>(callback: () => TResult): TResult {
   const current = currentComputation;
@@ -74,63 +57,67 @@ export function getCurrent(): Computation | null {
 }
 
 export class ComputationClass<T> implements Computation {
+  private func: RunFunction<T>;
+  private disposed = false;
+
   readonly name: string;
-  private func: RunFunction<T> | null;
   ref: ComputationRefClass | null = null;
   parentRef: ComputationRefClass | null;
-  value: T | null = null;
 
   constructor(name: string, runFunc: RunFunction<T>,
-    parentComputation: ComputationRefClass | null = null) {
+    parentRef: ComputationRefClass | null = null) {
     this.name = name;
     this.func = runFunc;
-    this.parentRef = parentComputation;
+    this.parentRef = parentRef;
   }
 
   get isAlive(): boolean {
-    return this.func !== null;
+    return !this.disposed;
   }
 
   dispose(): void {
-    this.func = null;
-    if (this.ref) {
-      this.ref.dispose();
-      this.ref = null;
+    if (!this.disposed) {
+      this.disposed = true;
+      if (this.ref) {
+        this.ref.dispose();
+        this.ref = null;
+      }
+      this.parentRef = null;
     }
-    this.parentRef = null;
   }
 
-  rerun(): T | undefined {
-    let result: T | undefined;
-    if (this.func) {
-      if (this.parentRef && !this.parentRef.isAlive) {
-        this.dispose();
-      } else if (suspendCount > 0) {
-        suspendedAutoruns.push(this);
-      } else {
-        Logger.current.trace(`Starting ${this.name}.`);
-        result = this.exec(() => {
-          const stack = new FrozenSet(computationStack);
-          if (this.ref) {
-            this.ref = this.ref.reincarnate(stack);
-          } else {
-            this.ref = new ComputationRefClass(this, stack);
-          }
-          try {
-            this.value = this.func!(this.ref);
-          } catch (err) {
-            this.dispose();
-            throw err;
-          }
-          return this.value;
-        });
-        Logger.current.trace(`Finished ${this.name}.`);
-      }
+  run(): T {
+    if (this.disposed) {
+      throw new DisposedError(DISPOSED);
     }
-    return result;
+    if (suspendCount > 0) {
+      throw new ComputationError('Computations are currently suspended.');
+    }
+    if (this.ref) {
+      throw new ComputationError(
+        'Computation has already been run once. Call rerun instead.');
+    }
+    return this.exec();
+  }
+
+  rerun() {
+    if (this.disposed) {
+      throw new DisposedError(DISPOSED);
+    }
+    const func = this.func;
+    if (this.parentRef && !this.parentRef.isAlive) {
+      this.dispose();
+    } else if (suspendCount > 0) {
+      suspendedComputations.push(this);
+    } else {
+      this.exec();
+    }
   }
 
   continue<R>(callback: () => R): R {
+    if (this.disposed) {
+      throw new DisposedError(DISPOSED);
+    }
     const current = currentComputation;
     const currentStack = computationStack;
     currentComputation = this;
@@ -143,7 +130,7 @@ export class ComputationClass<T> implements Computation {
     }
   }
 
-  exec<R>(callback: () => R): R {
+  private exec(): T {
     if (currentComputation) {
       if (currentComputation === this ||
         computationStack.has(currentComputation)) {
@@ -154,15 +141,23 @@ export class ComputationClass<T> implements Computation {
       }
       computationStack.add(currentComputation!);
     }
+    Logger.current.trace(`Starting ${this.name}.`);
     const current = currentComputation;
     currentComputation = this;
     try {
-      return callback();
+      const stack = new FrozenSet(computationStack);
+      if (this.ref) {
+        this.ref = this.ref.reincarnate(stack);
+      } else {
+        this.ref = new ComputationRefClass(this, stack);
+      }
+      return this.func(this.ref);
     } finally {
       currentComputation = current;
       if (currentComputation) {
         computationStack.delete(currentComputation);
       }
+      Logger.current.trace(`Finished ${this.name}.`);
     }
   }
 }
