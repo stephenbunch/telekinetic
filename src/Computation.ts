@@ -1,3 +1,4 @@
+import { Autorun } from './Autorun';
 import { ComputationRefClass, ComputationRef } from './ComputationRef';
 import { DisposedError } from './DisposedError';
 import { FrozenSet } from './FrozenSet';
@@ -32,7 +33,7 @@ export class ComputationError extends Error { }
 
 export class ReentrancyError extends Error { }
 
-export interface Computation {
+export interface Computation extends Autorun {
   readonly name: string;
   readonly isAlive: boolean;
   readonly ref: ComputationRefClass | null;

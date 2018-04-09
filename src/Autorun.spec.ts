@@ -1,3 +1,4 @@
+import { autorun } from './autorun';
 import { observe, observeAsync } from './observe';
 import { Dependency, CircularDependencyError } from './Dependency';
 import { mockPromise, MockPromise, sleep, AsyncObserver } from './testing';
@@ -5,35 +6,35 @@ import { mockPromise, MockPromise, sleep, AsyncObserver } from './testing';
 it('should run again when a dependency changes', () => {
   const dep = new Dependency('dep');
   let count = 0;
-  const sub = observe('main', () => {
+  const auto = autorun('main', () => {
     dep.depend();
     count += 1;
-  }).subscribe();
+  });
   dep.changed();
   dep.changed();
   expect(count).toBe(3);
-  sub.unsubscribe();
+  auto.dispose();
 });
 
 it('should disconnect from previous dependencies on each new run', () => {
   const dep1 = new Dependency('dep1');
   const dep2 = new Dependency('dep2');
   let count = 0;
-  const sub = observe('main', () => {
+  const auto = autorun('main', () => {
     if (count === 0) {
       dep1.depend();
     } else {
       dep2.depend();
     }
     count += 1;
-  }).subscribe();
+  });
   dep1.changed();
   expect(count).toBe(2);
   dep1.changed();
   expect(count).toBe(2);
   dep2.changed();
   expect(count).toBe(3);
-  sub.unsubscribe();
+  auto.dispose();
 });
 
 it('should support nested computations', () => {
@@ -43,7 +44,7 @@ it('should support nested computations', () => {
   let countA = 0;
   let countB = 0;
   let countC = 0;
-  const sub = observe('main', (comp) => {
+  const auto = autorun('main', (comp) => {
     dep1.depend();
     comp.fork('main.sub', (comp) => {
       dep2.depend();
@@ -54,7 +55,7 @@ it('should support nested computations', () => {
       countB += 1;
     });
     countA += 1;
-  }).subscribe();
+  });
   dep1.changed();
   expect(countA).toBe(2);
   expect(countB).toBe(2);
@@ -71,18 +72,18 @@ it('should support nested computations', () => {
   expect(countA).toBe(3);
   expect(countB).toBe(4);
   expect(countC).toBe(5);
-  sub.unsubscribe();
+  auto.dispose();
 });
 
 it('should not rerun when disposed', () => {
   const dep = new Dependency('dep');
   let count = 0;
-  const sub = observe('main', () => {
+  const auto = autorun('main', () => {
     dep.depend();
     count += 1;
-  }).subscribe();
+  });
   dep.changed();
-  sub.unsubscribe();
+  auto.dispose();
   dep.changed();
   expect(count).toBe(2);
 });
@@ -94,7 +95,7 @@ it('should support async computations', async () => {
   let countB = 0;
   let promiseA = mockPromise<number>();
   let promiseB = mockPromise<number>();
-  const sub = observe('main', async (comp) => {
+  const auto = autorun('main', async (comp) => {
     dep1.depend();
     await new Promise(resolve => setImmediate(resolve));
     await comp.fork('sub', async () => {
@@ -107,26 +108,23 @@ it('should support async computations', async () => {
     countA += 1;
     promiseA.resolve(countA);
     promiseA = mockPromise<number>();
-  }).subscribe();
+  });
   expect(await Promise.all([promiseA, promiseB])).toEqual([1, 1]);
   dep2.changed();
   expect(await promiseB).toBe(2);
   dep1.changed();
   expect(await Promise.all([promiseA, promiseB])).toEqual([2, 3]);
-  sub.unsubscribe();
+  auto.dispose();
 });
 
 it('should throw an error if a circular dependency is detected', () => {
   const dep = new Dependency('dep');
-  let count = 0;
-  expect(() => {
-    observe('main', () => {
-      count += 1;
-      dep.depend();
-      dep.changed();
-    }).subscribe();
-  }).toThrow(CircularDependencyError);
-  expect(count).toBe(1);
+  const onError = jest.fn();
+  const sub = observe('main', () => {
+    dep.depend();
+    dep.changed();
+  }).subscribe(undefined, onError);
+  expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
 });
 
 it('should throw an error when a circular dependency is detected between ' +
@@ -139,17 +137,17 @@ it('should throw an error when a circular dependency is detected between ' +
     let count2 = 0;
     let count3 = 0;
 
-    const sub1 = observe('main', () => {
+    const auto1 = autorun('main', () => {
       count1 += 1;
       dep1.depend();
       dep2.changed();
-    }).subscribe();
+    });
 
-    const sub2 = observe('main', () => {
+    const auto2 = autorun('main', () => {
       count2 += 1;
       dep2.depend();
       dep3.changed();
-    }).subscribe();
+    });
 
     const onError = jest.fn();
     const sub3 = observe('main', () => {
@@ -163,8 +161,8 @@ it('should throw an error when a circular dependency is detected between ' +
     expect(count2).toBe(2);
     expect(count3).toBe(2);
 
-    sub1.unsubscribe();
-    sub2.unsubscribe();
+    auto1.dispose();
+    auto2.dispose();
     sub3.unsubscribe();
   });
 
@@ -266,6 +264,7 @@ it('should throw an error when a circular dependency is detected between two ' +
     expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
     expect(count1).toBe(2);
     expect(count2).toBe(2);
+    sub.unsubscribe();
   });
 
 it('should not throw a circular dependency error between two sibling graphs',
@@ -281,7 +280,7 @@ it('should not throw a circular dependency error between two sibling graphs',
     const result = new Dependency('results');
     let count1 = 0;
     let count2 = 0;
-    const sub = observe('main', (comp) => {
+    const auto = autorun('main', (comp) => {
       comp.fork('sub1', () => {
         count1 += 1;
         nodes.depend();
@@ -291,7 +290,7 @@ it('should not throw a circular dependency error between two sibling graphs',
         count2 += 1;
         result.depend();
       });
-    }).subscribe();
+    });
     expect(count1).toBe(1);
     expect(count2).toBe(1);
 
@@ -303,5 +302,5 @@ it('should not throw a circular dependency error between two sibling graphs',
     expect(count1).toBe(3);
     expect(count2).toBe(3);
 
-    sub.unsubscribe();
+    auto.dispose();
   });

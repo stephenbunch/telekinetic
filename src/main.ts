@@ -5,6 +5,7 @@ export {
   RunFunction,
 } from './Computation';
 export { ComputationRef } from './ComputationRef';
+export * from './autorun';
 export * from './batchUpdate';
 export * from './bound';
 export * from './CollectionBrush';

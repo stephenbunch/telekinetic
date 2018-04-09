@@ -1,18 +1,11 @@
+import { autorun } from './autorun';
 import { Observable } from 'rxjs/Observable';
-import { RunFunction, ComputationClass } from './Computation';
-import { ComputationRef } from './ComputationRef';
-
-function run<TRunResult>(name: string,
-  runFunc: RunFunction<TRunResult>): ComputationClass<TRunResult> {
-  const comp = new ComputationClass<TRunResult>(name, runFunc);
-  comp.run();
-  return comp;
-}
+import { RunFunction } from './Computation';
 
 export function observe<T>(name: string,
   runFunc: RunFunction<T>): Observable<T> {
   return new Observable<T>((observer) => {
-    const comp = run(name, (comp) => {
+    const auto = autorun(name, (comp) => {
       try {
         observer.next(runFunc(comp));
       } catch (err) {
@@ -20,7 +13,7 @@ export function observe<T>(name: string,
       }
     });
     return () => {
-      comp.dispose();
+      auto.dispose();
     };
   });
 }
@@ -28,7 +21,7 @@ export function observe<T>(name: string,
 export function observeAsync<T>(name: string,
   runFunc: RunFunction<Promise<T>>): Observable<T> {
   return new Observable<T>((observer) => {
-    const comp = run(name, async (comp) => {
+    const auto = autorun(name, async (comp) => {
       try {
         observer.next(await runFunc(comp));
       } catch (err) {
@@ -36,7 +29,7 @@ export function observeAsync<T>(name: string,
       }
     });
     return () => {
-      comp.dispose();
+      auto.dispose();
     };
   });
 }

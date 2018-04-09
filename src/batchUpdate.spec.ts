@@ -1,17 +1,17 @@
+import { autorun } from './autorun';
 import { batchUpdate, batchUpdateAsync } from './batchUpdate';
 import { Dependency } from './Dependency';
-import { observe } from './observe';
 
 describe('batchUpdate', () => {
   it('should suspend reruns', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
     let called = 0;
-    const sub = observe('main', () => {
+    const auto = autorun('main', () => {
       dep1.depend();
       dep2.depend();
       called += 1;
-    }).subscribe();
+    });
     expect(called).toBe(1);
 
     batchUpdate(() => {
@@ -24,8 +24,7 @@ describe('batchUpdate', () => {
     });
 
     expect(called).toBe(2);
-
-    sub.unsubscribe();
+    auto.dispose();
   });
 
   it('should forward the return value', () => {
@@ -38,11 +37,11 @@ describe('batchUpdateAsync', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
     let called = 0;
-    const sub = observe('main', () => {
+    const auto = autorun('main', () => {
       dep1.depend();
       dep2.depend();
       called += 1;
-    }).subscribe();
+    });
     expect(called).toBe(1);
 
     await batchUpdateAsync(async () => {
@@ -56,8 +55,7 @@ describe('batchUpdateAsync', () => {
     });
 
     expect(called).toBe(2);
-
-    sub.unsubscribe();
+    auto.dispose();
   });
 
   it('should forward the return value', async () => {
@@ -67,10 +65,10 @@ describe('batchUpdateAsync', () => {
   it('should resume on error', async () => {
     const dep = new Dependency('dep');
     let called = 0;
-    const sub = observe('main', () => {
+    const auto = autorun('main', () => {
       dep.depend();
       called += 1;
-    }).subscribe();
+    });
     expect(called).toBe(1);
 
     const error = new Error('test');
@@ -89,6 +87,6 @@ describe('batchUpdateAsync', () => {
     dep.changed();
     expect(called).toBe(3);
 
-    sub.unsubscribe();
+    auto.dispose();
   });
 });
