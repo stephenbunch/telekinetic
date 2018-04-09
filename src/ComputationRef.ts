@@ -1,4 +1,4 @@
-import { ComputationClass, Computation, RunFunction } from './Autorun';
+import { ComputationClass, Computation, RunFunction } from './Computation';
 import { FrozenSet } from './FrozenSet';
 
 export interface ComputationRef {

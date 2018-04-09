@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { once, exclude, Computation } from './Autorun';
+import { batchUpdate, exclude, Computation } from './Computation';
 import { observe } from './observe';
 import { ComputationRef } from './ComputationRef';
 import { ObservableProxy } from './ObservableProxy';
@@ -34,7 +34,7 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__props] === undefined || !this[__proxified]) {
       this[__props] = value;
     } else {
-      once(() => Object.assign(this[__props], value));
+      batchUpdate(() => Object.assign(this[__props], value));
     }
   }
 

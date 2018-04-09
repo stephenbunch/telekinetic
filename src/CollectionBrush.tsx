@@ -1,4 +1,4 @@
-import { exclude, once } from './Autorun';
+import { exclude, batchUpdate } from './Computation';
 import { bound } from './bound';
 import { ComputationRef } from './ComputationRef';
 import { Event, EventController } from './Event';
@@ -92,7 +92,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   construct(comp: ComputationRef) {
     // This will rereun anytime this.props.data changes.
-    once(() => {
+    batchUpdate(() => {
       if (this.store) {
         this.store.onAdd.removeListener(this.onAdd);
         this.store.onDelete.removeListener(this.onDelete);
@@ -116,7 +116,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
       comp.fork('getSortKeys', () => {
         // This will rerun anytime this.props.sort changes.
-        once(() => {
+        batchUpdate(() => {
           if (this.props.sort) {
             for (const key of this.store!.keys()) {
               this.addSortKeyForEntry(key);
@@ -127,7 +127,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
       comp.fork('renderAllEntries', (comp) => {
         // This will rerun anytime this.props.render changes.
-        once(() => {
+        batchUpdate(() => {
           // Make sure the prop is read even if there are no entries in the
           // store initially.
           this.props.render;
@@ -161,7 +161,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onAdd([key, value]: [K, V]) {
-    once(() => {
+    batchUpdate(() => {
       this.keys!.add(key);
       this.addSortKeyForEntry(key);
       this.renderEntry(key, value);
@@ -170,7 +170,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onDelete([key, value]: [K, V]) {
-    once(() => {
+    batchUpdate(() => {
       this.keys!.delete(key);
       this.sortKeys!.delete(key);
       this.renderResults!.delete(key);
@@ -179,7 +179,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
 
   @bound
   onUpdate([key, value]: [K, V]) {
-    once(() => {
+    batchUpdate(() => {
       this.addSortKeyForEntry(key);
       this.renderEntry(key, value);
     });

@@ -1,5 +1,5 @@
 import { Observable } from 'rxjs/Observable';
-import { RunFunction, ComputationClass } from './Autorun';
+import { RunFunction, ComputationClass } from './Computation';
 import { ComputationRef } from './ComputationRef';
 
 function start<TRunResult>(name: string,

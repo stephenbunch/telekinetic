@@ -40,7 +40,7 @@ export interface Computation {
 
 export type RunFunction<T> = (computation: ComputationRef) => T;
 
-export function once<TResult>(callback: () => TResult): TResult {
+export function batchUpdate<TResult>(callback: () => TResult): TResult {
   try {
     suspend();
     return callback();
@@ -49,7 +49,7 @@ export function once<TResult>(callback: () => TResult): TResult {
   }
 }
 
-export function onceAsync<TResult>(
+export function batchUpdateAsync<TResult>(
   callback: () => Promise<TResult>): Promise<TResult> {
   suspend();
   return callback().then(result => {

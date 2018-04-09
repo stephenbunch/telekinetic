@@ -1,4 +1,4 @@
-import { getCurrent, ReentrancyError } from './Autorun';
+import { getCurrent, ReentrancyError } from './Computation';
 import { ComputationRefClass } from './ComputationRef';
 import { OrderedSet } from './OrderedSet';
 import { Logger } from './Logger';

@@ -1,4 +1,4 @@
-import { exclude, once, onceAsync } from './Autorun';
+import { exclude, batchUpdate, batchUpdateAsync } from './Computation';
 import { observe, observeAsync } from './observe';
 import { Dependency, CircularDependencyError } from './Dependency';
 
@@ -271,8 +271,8 @@ describe('Autorun', () => {
       }).subscribe();
       expect(called).toBe(1);
 
-      once(() => {
-        once(() => {
+      batchUpdate(() => {
+        batchUpdate(() => {
           dep1.changed();
           dep2.changed();
           expect(called).toBe(1);
@@ -286,7 +286,7 @@ describe('Autorun', () => {
     });
 
     it('should forward the return value', () => {
-      expect(once(() => 2)).toBe(2);
+      expect(batchUpdate(() => 2)).toBe(2);
     });
   });
 
@@ -302,8 +302,8 @@ describe('Autorun', () => {
       }).subscribe();
       expect(called).toBe(1);
 
-      await onceAsync(async () => {
-        await onceAsync(async () => {
+      await batchUpdateAsync(async () => {
+        await batchUpdateAsync(async () => {
           dep1.changed();
           await Promise.resolve();
           dep2.changed();
@@ -318,7 +318,7 @@ describe('Autorun', () => {
     });
 
     it('should forward the return value', async () => {
-      expect(await onceAsync(() => Promise.resolve(2))).toBe(2);
+      expect(await batchUpdateAsync(() => Promise.resolve(2))).toBe(2);
     });
 
     it('should resume on error', async () => {
@@ -332,7 +332,7 @@ describe('Autorun', () => {
 
       const error = new Error('test');
       try {
-        await onceAsync(async () => {
+        await batchUpdateAsync(async () => {
           dep.changed();
           dep.changed();
           await Promise.reject(error);

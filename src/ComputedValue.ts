@@ -1,6 +1,6 @@
 import { ComputationRef } from './ComputationRef';
 import { Dependency } from './Dependency';
-import { getCurrent } from './Autorun';
+import { getCurrent } from './Computation';
 import { Input } from './Input';
 
 const cache = new WeakMap();
