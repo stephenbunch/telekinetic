@@ -59,13 +59,11 @@ export class ComputationRefClass {
   }
 
   reincarnate(stack: FrozenSet<Computation>): ComputationRefClass {
-    // Reincarnate essentially clones the computation object and nulls the
-    // previous object.
-    // A computation is like a surrogate. Rather than track dependencies on the
-    // autorun itself, dependencies are tracked on the computation object so
+    // Reincarnate essentially clones the ref object and nulls the previous ref.
+    // A ref is like a surrogate. Rather than track dependencies on the
+    // computation itself, dependencies are tracked on the ref object so
     // that when a computation is rerun, old dependencies can be cleaned up in
-    // constant time. The actual cleanup occurs when a dependency is changed.
-    // When a dependency is changed, only live computations are rerun.
+    // constant time. When a dependency is changed, only live refs are used.
     const comp =
       Object.create(ComputationRefClass.prototype) as ComputationRefClass;
     comp.computation = this.computation;
