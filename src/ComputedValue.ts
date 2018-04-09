@@ -30,20 +30,19 @@ export class ComputedValue<T> implements Input<T> {
   }
 }
 
+export class ComputedAsyncValueError extends Error { }
+
 export class ComputedAsyncValue<T> implements Input<Promise<T>> {
   readonly name: string;
   private readonly runFunc: (comp?: ComputationRef) => T;
-  private dependency: Dependency;
   private cache = new WeakMap<ComputationRef, T>();
 
   constructor(name: string, runFunc: (comp?: ComputationRef) => T) {
     this.name = name;
     this.runFunc = runFunc;
-    this.dependency = new Dependency(name);
   }
 
   async get() {
-    this.dependency.depend();
     const current = getCurrent();
     if (current && current.ref) {
       const ref = current.ref;

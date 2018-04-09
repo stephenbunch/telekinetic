@@ -1,7 +1,7 @@
 import { ComputedValue, ComputedAsyncValue } from './ComputedValue';
 import { observe, observeAsync } from './observe';
 import { Value } from './Value';
-import { AsyncObserver } from './testing';
+import { AsyncObserver, sleep } from './testing';
 
 it('should cache computed values', () => {
   const val1 = new Value('val1', 'foo');
@@ -48,19 +48,26 @@ it('should cache computed values', () => {
 
 it('should compute async values', async () => {
   const val1 = new Value('val1', 'foo');
-  const val2 = new Value('val2', Promise.resolve('bar'));
-  const comp = jest.fn(async () => val1.get() + await val2.get());
+  const val2 = new Value('val2', 'bar');
+  const comp = jest.fn(async (comp) => {
+    await sleep();
+    return comp.continue(() => val1.get() + val2.get());
+  });
   const val3 = new ComputedAsyncValue('val3', comp);
 
   const obs = new AsyncObserver<string>();
-  const sub = observeAsync('auto1', () => val3.get()).subscribe(obs);
+  const sub = observeAsync('auto1', async (comp) => {
+    await val3.get();
+    return await comp.continue(async () => await val3.get());
+  }).subscribe(obs);
   expect(await obs.promise).toBe('foobar');
 
   val1.set('qux');
   expect(await obs.promise).toBe('quxbar');
 
-  val2.set(Promise.resolve('foo'));
+  val2.set('foo');
   expect(await obs.promise).toBe('quxfoo');
 
+  expect(comp).toHaveBeenCalledTimes(3);
   sub.unsubscribe();
 });
