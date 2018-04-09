@@ -3,12 +3,11 @@ import { Dependency } from './Dependency';
 import { getCurrent } from './Computation';
 import { Input } from './Input';
 
-const cache = new WeakMap();
-
 export class ComputedValue<T> implements Input<T> {
   readonly name: string;
   private readonly runFunc: (comp?: ComputationRef) => T;
   private dependency: Dependency;
+  private cache = new WeakMap<ComputationRef, T>();
 
   constructor(name: string, runFunc: (comp?: ComputationRef) => T) {
     this.name = name;
@@ -19,23 +18,41 @@ export class ComputedValue<T> implements Input<T> {
   get() {
     this.dependency.depend();
     const current = getCurrent();
-    if (current) {
-      if (!cache.has(current)) {
-        current.ref!.fork(this.name, (comp) => {
-          const value = this.runFunc(comp);
-          if (cache.has(current)) {
-            if (cache.get(current) !== value) {
-              cache.set(current, value);
-              this.dependency.changed();
-            }
-          } else {
-            cache.set(current, value);
-          }
-        });
+    if (current && current.ref) {
+      const ref = current.ref;
+      if (!this.cache.has(ref)) {
+        this.cache.set(ref, this.runFunc(ref));
       }
-      return cache.get(current);
+      return this.cache.get(ref)!;
     } else {
       return this.runFunc();
+    }
+  }
+}
+
+export class ComputedAsyncValue<T> implements Input<Promise<T>> {
+  readonly name: string;
+  private readonly runFunc: (comp?: ComputationRef) => T;
+  private dependency: Dependency;
+  private cache = new WeakMap<ComputationRef, T>();
+
+  constructor(name: string, runFunc: (comp?: ComputationRef) => T) {
+    this.name = name;
+    this.runFunc = runFunc;
+    this.dependency = new Dependency(name);
+  }
+
+  async get() {
+    this.dependency.depend();
+    const current = getCurrent();
+    if (current && current.ref) {
+      const ref = current.ref;
+      if (!this.cache.has(ref)) {
+        this.cache.set(ref, await this.runFunc(ref));
+      }
+      return this.cache.get(ref)!;
+    } else {
+      return await this.runFunc();
     }
   }
 }

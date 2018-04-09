@@ -12,12 +12,14 @@ export interface ComputationRef {
 }
 
 export class ComputationRefClass {
+  readonly name: string;
   computation: Computation | null;
   parents: FrozenSet<Computation> | null;
   stack: FrozenSet<Computation> | null;
   dependencies: Set<string> | undefined;
 
   constructor(computation: Computation, stack: FrozenSet<Computation>) {
+    this.name = computation.name;
     this.computation = computation;
     this.stack = stack;
     if (computation.parentRef) {
