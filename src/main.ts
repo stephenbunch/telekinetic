@@ -14,7 +14,6 @@ export * from './Dependency';
 export * from './DisposedError';
 export * from './Event';
 export * from './Input';
-export * from './Input';
 export * from './KeyedDependency';
 export * from './Logger';
 export * from './observable';
