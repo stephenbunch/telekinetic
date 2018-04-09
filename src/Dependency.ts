@@ -1,7 +1,7 @@
-import { getCurrent, ReentrancyError } from './Computation';
 import { ComputationRefClass } from './ComputationRef';
-import { OrderedSet } from './OrderedSet';
+import { getCurrent, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
+import { OrderedSet } from './OrderedSet';
 
 export class CircularDependencyError extends Error { }
 

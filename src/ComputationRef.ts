@@ -1,6 +1,6 @@
-import { ComputationClass, Computation, RunFunction } from './Computation';
-import { FrozenSet } from './FrozenSet';
+import { Computation, ComputationClass, RunFunction } from './Computation';
 import { DisposedError } from './DisposedError';
+import { FrozenSet } from './FrozenSet';
 
 const DISPOSED = 'The computation reference has been disposed.';
 
