@@ -1,7 +1,8 @@
+import { AsyncObserver } from './testing';
+import { batchUpdate } from './batchUpdate';
 import { ComputedValue, ComputedAsyncValue } from './ComputedValue';
 import { observe, observeAsync } from './observe';
 import { Value } from './Value';
-import { AsyncObserver } from './testing';
 
 it('should cache computed values', () => {
   const val1 = new Value('val1', 'foo');
@@ -68,3 +69,28 @@ it('should compute async values', async () => {
   expect(comp).toHaveBeenCalledTimes(3);
   sub.unsubscribe();
 });
+
+it('should trigger downstream changes only when the computed value changes',
+  () => {
+    const val1 = new Value('val1', 2);
+    const val2 = new Value('val2', 2);
+    const val3 = new ComputedValue('val3', () => val1.get() + val2.get());
+
+    const next = jest.fn();
+    const sub = observe('main', () => val3.get()).subscribe(next);
+
+    expect(next).toHaveBeenCalledWith(4);
+    expect(next).toHaveBeenCalledTimes(1);
+
+    batchUpdate(() => {
+      val1.set(1);
+      val2.set(3);
+    });
+    expect(next).toHaveBeenCalledTimes(1);
+
+    val1.set(3);
+    expect(next).toHaveBeenCalledWith(6);
+    expect(next).toHaveBeenCalledTimes(2);
+
+    sub.unsubscribe();
+  });

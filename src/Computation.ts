@@ -39,6 +39,7 @@ export interface Computation extends Autorun {
   readonly ref: ComputationRefClass | null;
   readonly parentRef: ComputationRefClass | null;
   continue<R>(callback: () => R): R;
+  spawn<R>(name: string, runFunc: RunFunction<R>): Computation;
   rerun(): void;
   dispose(): void;
 }
@@ -60,6 +61,7 @@ export function getCurrent(): Computation | null {
 export class ComputationClass<T> implements Computation {
   private func: RunFunction<T>;
   private disposed = false;
+  private children: Computation[] = [];
 
   readonly name: string;
   ref: ComputationRefClass | null = null;
@@ -84,6 +86,10 @@ export class ComputationClass<T> implements Computation {
         this.ref = null;
       }
       this.parentRef = null;
+      for (const child of this.children) {
+        child.dispose();
+      }
+      this.children = [];
     }
   }
 
@@ -129,6 +135,13 @@ export class ComputationClass<T> implements Computation {
       currentComputation = current;
       computationStack = currentStack;
     }
+  }
+
+  spawn<R>(name: string, runFunc: RunFunction<R>): ComputationClass<R> {
+    const comp = new ComputationClass(name, runFunc);
+    this.children.push(comp);
+    comp.run();
+    return comp;
   }
 
   private exec(): T {
