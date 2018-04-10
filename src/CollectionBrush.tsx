@@ -12,20 +12,20 @@ import * as React from 'react';
 
 export class CollectionBrushStore<K, V> implements Iterable<[K, V]> {
   private store = new Map<K, V>();
-  private _onAdd = new EventController<[K, V]>();
-  private _onDelete = new EventController<[K, V]>();
-  private _onUpdate = new EventController<[K, V]>();
+  private onAddEvent = new EventController<[K, V]>();
+  private onDeleteEvent = new EventController<[K, V]>();
+  private onUpdateEvent = new EventController<[K, V]>();
 
   get onAdd(): Event<[K, V]> {
-    return this._onAdd.event;
+    return this.onAddEvent;
   }
 
   get onDelete(): Event<[K, V]> {
-    return this._onDelete.event;
+    return this.onDeleteEvent;
   }
 
   get onUpdate(): Event<[K, V]> {
-    return this._onUpdate.event;
+    return this.onUpdateEvent;
   }
 
   [Symbol.iterator](): IterableIterator<[K, V]> {
@@ -51,10 +51,10 @@ export class CollectionBrushStore<K, V> implements Iterable<[K, V]> {
   set(key: K, value: V) {
     if (this.store.has(key)) {
       this.store.set(key, value);
-      this._onUpdate.trigger([key, value]);
+      this.onUpdateEvent.trigger([key, value]);
     } else {
       this.store.set(key, value);
-      this._onAdd.trigger([key, value]);
+      this.onAddEvent.trigger([key, value]);
     }
   }
 
@@ -62,7 +62,7 @@ export class CollectionBrushStore<K, V> implements Iterable<[K, V]> {
     if (this.store.has(key)) {
       const value = this.store.get(key)!;
       this.store.delete(key);
-      this._onDelete.trigger([key, value]);
+      this.onDeleteEvent.trigger([key, value]);
     }
   }
 }

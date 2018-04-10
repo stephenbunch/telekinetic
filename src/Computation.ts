@@ -40,6 +40,8 @@ export interface Computation extends Autorun {
   readonly parentRef: ComputationRefClass | null;
   continue<R>(callback: () => R): R;
   spawn<R>(name: string, runFunc: RunFunction<R>): Computation;
+  spawnAsync<R>(name: string,
+    runFunc: RunFunction<Promise<R>>): Promise<Computation>;
   rerun(): void;
   destroy(): void;
 }
@@ -141,6 +143,14 @@ export class ComputationClass<T> implements Computation {
     const comp = new ComputationClass(name, runFunc);
     this.children.push(comp);
     comp.run();
+    return comp;
+  }
+
+  async spawnAsync<R>(name: string,
+    runFunc: RunFunction<Promise<R>>): Promise<ComputationClass<Promise<R>>> {
+    const comp = new ComputationClass(name, runFunc);
+    this.children.push(comp);
+    await comp.run();
     return comp;
   }
 
