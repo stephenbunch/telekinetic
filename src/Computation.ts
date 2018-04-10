@@ -41,7 +41,7 @@ export interface Computation extends Autorun {
   continue<R>(callback: () => R): R;
   spawn<R>(name: string, runFunc: RunFunction<R>): Computation;
   rerun(): void;
-  dispose(): void;
+  destroy(): void;
 }
 
 export type RunFunction<T> = (computation: ComputationRef) => T;
@@ -78,16 +78,16 @@ export class ComputationClass<T> implements Computation {
     return !this.disposed;
   }
 
-  dispose(): void {
+  destroy(): void {
     if (!this.disposed) {
       this.disposed = true;
       if (this.ref) {
-        this.ref.dispose();
+        this.ref.destroy();
         this.ref = null;
       }
       this.parentRef = null;
       for (const child of this.children) {
-        child.dispose();
+        child.destroy();
       }
       this.children = [];
     }
@@ -113,7 +113,7 @@ export class ComputationClass<T> implements Computation {
     }
     const func = this.func;
     if (this.parentRef && !this.parentRef.isAlive) {
-      this.dispose();
+      this.destroy();
     } else if (suspendCount > 0) {
       suspendedComputations.push(this);
     } else {

@@ -1,7 +1,6 @@
 # Telekinetic
 
 ## Roadmap
-- Rename dispose methods to destroy.
 - Add priority to computed async values. IMMEDIATE runs as a micro task using Promise.resolve. BACKGROUND runs in a new context setTimeout(0).
 - Refactor reactive component as connect decorator. connect should take a name.
 - Add computed decorator with options: async, priority.

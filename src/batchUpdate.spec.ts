@@ -24,7 +24,7 @@ describe('batchUpdate', () => {
     });
 
     expect(called).toBe(2);
-    auto.dispose();
+    auto.destroy();
   });
 
   it('should forward the return value', () => {
@@ -55,7 +55,7 @@ describe('batchUpdateAsync', () => {
     });
 
     expect(called).toBe(2);
-    auto.dispose();
+    auto.destroy();
   });
 
   it('should forward the return value', async () => {
@@ -87,6 +87,6 @@ describe('batchUpdateAsync', () => {
     dep.changed();
     expect(called).toBe(3);
 
-    auto.dispose();
+    auto.destroy();
   });
 });

@@ -52,7 +52,7 @@ export class ComputationRefClass {
     }
   }
 
-  dispose() {
+  destroy() {
     this.computation = null;
     this.parents = null;
     this.stack = null;
@@ -69,7 +69,7 @@ export class ComputationRefClass {
     comp.computation = this.computation;
     comp.parents = this.parents;
     comp.stack = stack;
-    this.dispose();
+    this.destroy();
     return comp;
   }
 

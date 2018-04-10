@@ -13,7 +13,7 @@ it('should run again when a dependency changes', () => {
   dep.changed();
   dep.changed();
   expect(count).toBe(3);
-  auto.dispose();
+  auto.destroy();
 });
 
 it('should disconnect from previous dependencies on each new run', () => {
@@ -34,7 +34,7 @@ it('should disconnect from previous dependencies on each new run', () => {
   expect(count).toBe(2);
   dep2.changed();
   expect(count).toBe(3);
-  auto.dispose();
+  auto.destroy();
 });
 
 it('should support nested computations', () => {
@@ -72,7 +72,7 @@ it('should support nested computations', () => {
   expect(countA).toBe(3);
   expect(countB).toBe(4);
   expect(countC).toBe(5);
-  auto.dispose();
+  auto.destroy();
 });
 
 it('should not rerun when disposed', () => {
@@ -83,7 +83,7 @@ it('should not rerun when disposed', () => {
     count += 1;
   });
   dep.changed();
-  auto.dispose();
+  auto.destroy();
   dep.changed();
   expect(count).toBe(2);
 });
@@ -114,7 +114,7 @@ it('should support async computations', async () => {
   expect(await promiseB).toBe(2);
   dep1.changed();
   expect(await Promise.all([promiseA, promiseB])).toEqual([2, 3]);
-  auto.dispose();
+  auto.destroy();
 });
 
 it('should throw an error if a circular dependency is detected', () => {
@@ -161,8 +161,8 @@ it('should throw an error when a circular dependency is detected between ' +
     expect(count2).toBe(2);
     expect(count3).toBe(2);
 
-    auto1.dispose();
-    auto2.dispose();
+    auto1.destroy();
+    auto2.destroy();
     sub3.unsubscribe();
   });
 
@@ -302,5 +302,5 @@ it('should not throw a circular dependency error between two sibling graphs',
     expect(count1).toBe(3);
     expect(count2).toBe(3);
 
-    auto.dispose();
+    auto.destroy();
   });
