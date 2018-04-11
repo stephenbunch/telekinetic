@@ -1,7 +1,7 @@
 import { exclude } from './Computation';
 import { batchUpdate } from './batchUpdate';
 import { bound } from './bound';
-import { ComputationRef } from './ComputationRef';
+import { ComputationContext } from './ComputationContext';
 import { Event, EventController } from './Event';
 import { observable } from './observable';
 import { ObservableMap } from './ObservableMap';
@@ -91,7 +91,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
   @observable
   private renderResults: ObservableMap<K, React.ReactNode> | undefined;
 
-  construct(comp: ComputationRef) {
+  construct(ctx: ComputationContext) {
     // This will rereun anytime this.props.data changes.
     batchUpdate(() => {
       if (this.store) {
@@ -116,7 +116,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
       this.sortKeys = new ObservableMap(`${this.props.name}.sortKeys`);
     });
 
-    comp.fork('getSortKeys', () => {
+    ctx.fork('getSortKeys', () => {
       // This will rerun anytime this.props.sort changes.
       batchUpdate(() => {
         if (this.props.sort) {
@@ -127,7 +127,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
       });
     });
 
-    comp.fork('renderAllEntries', (comp) => {
+    ctx.fork('renderAllEntries', () => {
       // This will rerun anytime this.props.render changes.
       batchUpdate(() => {
         // Make sure the prop is read even if there are no entries in the
@@ -139,7 +139,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
       });
     });
 
-    comp.fork('sortEntriesUsingSortKeys', (comp) => {
+    ctx.fork('sortEntriesUsingSortKeys', (ctx) => {
       // This will rerun anytime the this.keys or this.sortKeys change.
       const sortedKeys = new OrderedSet(this.keys);
       if (this.props.sort) {
@@ -148,7 +148,7 @@ export abstract class CollectionBrush<K, V, S = any> extends
           sortedKeys.reverse();
         }
       }
-      comp.fork('useSortedKeysToMakeFinalResult', () => {
+      ctx.fork('useSortedKeysToMakeFinalResult', () => {
         // This will rerun anytime a result in this.renderResults changes.
         this.result = sortedKeys.toArray().map((key) =>
           this.renderResults!.get(key));

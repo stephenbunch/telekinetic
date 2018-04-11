@@ -11,7 +11,7 @@ export class EventController<T = null> implements Event<T> {
   private listeners = new OrderedSet<EventListener<T>>();
 
   addListener(listener: EventListener<T>) {
-    this.listeners.push(listener);
+    this.listeners.add(listener);
   }
 
   removeListener(listener: EventListener<T>) {

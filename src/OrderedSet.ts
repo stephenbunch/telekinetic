@@ -31,20 +31,11 @@ export class OrderedSet<T> implements Iterable<T> {
     }
   }
 
-  push(item: T) {
+  add(item: T) {
     if (!this.set.has(item)) {
       this.set.add(item);
       this.items.push(item);
     }
-  }
-
-  pop(): T | undefined {
-    if (this.items.length > 0) {
-      const item = this.items.pop();
-      this.set.delete(item!);
-      return item;
-    }
-    return undefined;
   }
 
   clone(): OrderedSet<T> {

@@ -1,5 +1,5 @@
 import { Dependency } from './Dependency';
-import { DisposedError } from './DisposedError';
+import { DestroyedError } from './DisposedError';
 import { observe, observeAsync } from './observe';
 import { AsyncObserver } from './testing';
 
@@ -7,8 +7,8 @@ describe('fork', () => {
   it('should not run if the parent has been disposed', () => {
     const dep = new Dependency('dep');
     let count = 0;
-    const sub = observe('main', (comp) => {
-      comp.fork('sub', () => {
+    const sub = observe('main', (ctx) => {
+      ctx.fork('sub', () => {
         dep.depend();
         count += 1;
       });
@@ -20,8 +20,8 @@ describe('fork', () => {
 
   it('should forward the return value', () => {
     let result: number | undefined;
-    const sub = observe('main', (comp) => {
-      result = comp.fork('sub', () => 2);
+    const sub = observe('main', (ctx) => {
+      result = ctx.fork('sub', () => 2);
     }).subscribe();
     expect(result).toBe(2);
     sub.unsubscribe();
@@ -35,10 +35,10 @@ describe('continue', () => {
     let called = 0;
     let obs = new AsyncObserver();
 
-    const sub = observeAsync('main', async (comp) => {
+    const sub = observeAsync('main', async (ctx) => {
       dep1.depend();
       await Promise.resolve();
-      comp.continue(() => {
+      ctx.continue(() => {
         dep2.depend();
         called += 1;
       });
@@ -64,12 +64,12 @@ describe('continue', () => {
     let nextCalled = 0;
     let obs = new AsyncObserver();
 
-    const sub = observeAsync('main', async (comp) => {
+    const sub = observeAsync('main', async (ctx) => {
       dep.depend();
       called += 1;
       await Promise.resolve();
-      if (comp.isAlive) {
-        comp.continue(() => {
+      if (ctx.isAlive) {
+        ctx.continue(() => {
           nextCalled += 1;
         });
       }
@@ -91,8 +91,8 @@ describe('continue', () => {
 
   it('should forward the return value', () => {
     let result: number | undefined;
-    const sub = observe('main', (comp) => {
-      result = comp.continue(() => 2);
+    const sub = observe('main', (ctx) => {
+      result = ctx.continue(() => 2);
     }).subscribe();
     sub.unsubscribe();
     expect(result).toBe(2);

@@ -4,7 +4,7 @@ export {
   ReentrancyError,
   RunFunction,
 } from './Computation';
-export { ComputationRef } from './ComputationRef';
+export { ComputationContext } from './ComputationContext';
 export * from './autorun';
 export * from './batchUpdate';
 export * from './bound';

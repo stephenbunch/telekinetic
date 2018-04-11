@@ -44,11 +44,11 @@ it('should support nested computations', () => {
   let countA = 0;
   let countB = 0;
   let countC = 0;
-  const auto = autorun('main', (comp) => {
+  const auto = autorun('main', (ctx) => {
     dep1.depend();
-    comp.fork('main.sub', (comp) => {
+    ctx.fork('main.sub', (ctx) => {
       dep2.depend();
-      comp.fork('main.sub.sub', () => {
+      ctx.fork('main.sub.sub', () => {
         dep3.depend();
         countC += 1;
       });
@@ -95,10 +95,10 @@ it('should support async computations', async () => {
   let countB = 0;
   let promiseA = mockPromise<number>();
   let promiseB = mockPromise<number>();
-  const auto = autorun('main', async (comp) => {
+  const auto = autorun('main', async (ctx) => {
     dep1.depend();
     await new Promise(resolve => setImmediate(resolve));
-    await comp.fork('sub', async () => {
+    await ctx.fork('sub', async () => {
       dep2.depend();
       await new Promise(resolve => setImmediate(resolve));
       countB += 1;
@@ -181,20 +181,20 @@ it('should throw an error when a circular dependency is detected between ' +
     // 2. run auto2 -> dep1 changed -> run auto1 -> dep2 changed -> run auto2
     //        -> dep1 changed -> error!
 
-    const sub1 = observeAsync('auto1', async (comp) => {
+    const sub1 = observeAsync('auto1', async (ctx) => {
       dep1.depend();
       await sleep();
-      comp.continue(() => {
+      ctx.continue(() => {
         dep2.changed();
       });
       return ++count1;
     }).subscribe(obs1);
     expect(await obs1.promise).toBe(1);
 
-    const sub2 = observeAsync('auto2', async (comp) => {
+    const sub2 = observeAsync('auto2', async (ctx) => {
       dep2.depend();
       await sleep();
-      comp.continue(() => {
+      ctx.continue(() => {
         dep1.changed();
       });
       return ++count2;
@@ -222,12 +222,12 @@ it('should throw an error when a circular dependency is detected between ' +
     let count = 0;
     const def = mockPromise();
     const onError = jest.fn();
-    const sub = observeAsync('main', async (comp) => {
+    const sub = observeAsync('main', async (ctx) => {
       try {
         count += 1;
         dep.depend();
         await Promise.resolve();
-        comp.continue(() => {
+        ctx.continue(() => {
           dep.changed();
         });
       } finally {
@@ -248,14 +248,14 @@ it('should throw an error when a circular dependency is detected between two ' +
     let count1 = 0;
     let count2 = 0;
     const onError = jest.fn();
-    const sub = observe('main', (comp) => {
-      comp.fork('sub1', () => {
+    const sub = observe('main', (ctx) => {
+      ctx.fork('sub1', () => {
         count1 += 1;
         dep1.depend();
         dep2.changed();
       });
 
-      comp.fork('sub2', () => {
+      ctx.fork('sub2', () => {
         count2 += 1;
         dep2.depend();
         dep1.changed();
@@ -280,13 +280,13 @@ it('should not throw a circular dependency error between two sibling graphs',
     const result = new Dependency('results');
     let count1 = 0;
     let count2 = 0;
-    const auto = autorun('main', (comp) => {
-      comp.fork('sub1', () => {
+    const auto = autorun('main', (ctx) => {
+      ctx.fork('sub1', () => {
         count1 += 1;
         nodes.depend();
         result.changed();
       });
-      comp.fork('sub2', () => {
+      ctx.fork('sub2', () => {
         count2 += 1;
         result.depend();
       });

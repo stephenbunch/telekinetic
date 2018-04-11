@@ -2,7 +2,7 @@ import * as React from 'react';
 import { exclude, Computation } from './Computation';
 import { batchUpdate } from './batchUpdate';
 import { observe } from './observe';
-import { ComputationRef } from './ComputationRef';
+import { ComputationContext } from './ComputationContext';
 import { ObservableProxy } from './ObservableProxy';
 import { Subscription } from 'rxjs/Subscription';
 
@@ -39,7 +39,7 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     }
   }
 
-  construct?(computation: ComputationRef): any;
+  construct?(computation: ComputationContext): any;
 
   abstract compute(): React.ReactNode;
 
@@ -59,7 +59,7 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__autorun] === null) {
       const name = `${this.name}.render`;
       this[__autorun] = observe(name, (root) => {
-        root.fork('construct', (comp) => this.construct && this.construct(comp));
+        root.fork('construct', (ctx) => this.construct && this.construct(ctx));
         root.fork('compute', () => {
           let result = this.compute();
           if (result !== this[__result]) {

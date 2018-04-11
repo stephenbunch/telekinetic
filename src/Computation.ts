@@ -1,6 +1,9 @@
 import { Autorun } from './Autorun';
-import { ComputationRefClass, ComputationRef } from './ComputationRef';
-import { DisposedError } from './DisposedError';
+import {
+  ComputationContext,
+  ComputationContextClass,
+} from './ComputationContext';
+import { DestroyedError } from './DisposedError';
 import { FrozenSet } from './FrozenSet';
 import { Logger } from './Logger';
 import { OrderedSet } from './OrderedSet';
@@ -10,7 +13,7 @@ let suspendCount = 0;
 let suspendedComputations = new OrderedSet<Computation>();
 let computationStack = new Set<Computation>();
 
-const DISPOSED = 'The computation has been disposed.';
+const DESTROYED = 'Computation has been destroyed.';
 
 export function suspend(): void {
   suspendCount += 1;
@@ -23,7 +26,9 @@ export function resume(): void {
       const computations = suspendedComputations;
       suspendedComputations = new OrderedSet<Computation>();
       for (const computation of computations) {
-        computation.rerun();
+        if (computation.isAlive) {
+          computation.rerun();
+        }
       }
     }
   }
@@ -36,8 +41,8 @@ export class ReentrancyError extends Error { }
 export interface Computation extends Autorun {
   readonly name: string;
   readonly isAlive: boolean;
-  readonly ref: ComputationRefClass | null;
-  readonly parentRef: ComputationRefClass | null;
+  readonly context: ComputationContextClass | null;
+  readonly parentContext: ComputationContextClass | null;
   continue<R>(callback: () => R): R;
   spawn<R>(name: string, runFunc: RunFunction<R>): Computation;
   spawnAsync<R>(name: string,
@@ -46,7 +51,7 @@ export interface Computation extends Autorun {
   destroy(): void;
 }
 
-export type RunFunction<T> = (computation: ComputationRef) => T;
+export type RunFunction<T> = (computation: ComputationContext) => T;
 
 export function exclude<TResult>(callback: () => TResult): TResult {
   const current = currentComputation;
@@ -66,14 +71,14 @@ export class ComputationClass<T> implements Computation {
   private children: Computation[] = [];
 
   readonly name: string;
-  ref: ComputationRefClass | null = null;
-  parentRef: ComputationRefClass | null;
+  context: ComputationContextClass | null = null;
+  parentContext: ComputationContextClass | null;
 
   constructor(name: string, runFunc: RunFunction<T>,
-    parentRef: ComputationRefClass | null = null) {
+    parentContext: ComputationContextClass | null = null) {
     this.name = name;
     this.func = runFunc;
-    this.parentRef = parentRef;
+    this.parentContext = parentContext;
   }
 
   get isAlive(): boolean {
@@ -83,11 +88,11 @@ export class ComputationClass<T> implements Computation {
   destroy(): void {
     if (!this.disposed) {
       this.disposed = true;
-      if (this.ref) {
-        this.ref.destroy();
-        this.ref = null;
+      if (this.context) {
+        this.context.destroy();
+        this.context = null;
       }
-      this.parentRef = null;
+      this.parentContext = null;
       for (const child of this.children) {
         child.destroy();
       }
@@ -97,12 +102,12 @@ export class ComputationClass<T> implements Computation {
 
   run(): T {
     if (this.disposed) {
-      throw new DisposedError(DISPOSED);
+      throw new DestroyedError(DESTROYED);
     }
     if (suspendCount > 0) {
       throw new ComputationError('Computations are currently suspended.');
     }
-    if (this.ref) {
+    if (this.context) {
       throw new ComputationError(
         'Computation has already been run once. Call rerun instead.');
     }
@@ -111,13 +116,13 @@ export class ComputationClass<T> implements Computation {
 
   rerun() {
     if (this.disposed) {
-      throw new DisposedError(DISPOSED);
+      throw new DestroyedError(DESTROYED);
     }
     const func = this.func;
-    if (this.parentRef && !this.parentRef.isAlive) {
+    if (this.parentContext && !this.parentContext.isAlive) {
       this.destroy();
     } else if (suspendCount > 0) {
-      suspendedComputations.push(this);
+      suspendedComputations.add(this);
     } else {
       this.exec();
     }
@@ -125,12 +130,12 @@ export class ComputationClass<T> implements Computation {
 
   continue<R>(callback: () => R): R {
     if (this.disposed) {
-      throw new DisposedError(DISPOSED);
+      throw new DestroyedError(DESTROYED);
     }
     const current = currentComputation;
     const currentStack = computationStack;
     currentComputation = this;
-    computationStack = new Set(this.ref!.stack!);
+    computationStack = new Set(this.context!.stack!);
     try {
       return callback();
     } finally {
@@ -170,12 +175,11 @@ export class ComputationClass<T> implements Computation {
     currentComputation = this;
     try {
       const stack = new FrozenSet(computationStack);
-      if (this.ref) {
-        this.ref = this.ref.reincarnate(stack);
-      } else {
-        this.ref = new ComputationRefClass(this, stack);
+      if (this.context) {
+        this.context.destroy();
       }
-      return this.func(this.ref);
+      this.context = new ComputationContextClass(this, stack);
+      return this.func(this.context);
     } finally {
       currentComputation = current;
       if (currentComputation) {

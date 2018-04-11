@@ -1,1 +1,1 @@
-export class DisposedError extends Error { }
+export class DestroyedError extends Error { }

@@ -1,4 +1,4 @@
-import { ComputationRef } from './ComputationRef';
+import { ComputationContext } from './ComputationContext';
 import { Dependency } from './Dependency';
 import { getCurrent, Computation } from './Computation';
 import { Input } from './Input';
@@ -7,10 +7,10 @@ import { Value } from './Value';
 export class ComputedValue<T> implements Input<T> {
   readonly name: string;
 
-  private readonly runFunc: (comp?: ComputationRef) => T;
+  private readonly runFunc: (comp?: ComputationContext) => T;
   private cache = new WeakMap<Computation, Value<T>>();
 
-  constructor(name: string, runFunc: (comp?: ComputationRef) => T) {
+  constructor(name: string, runFunc: (comp?: ComputationContext) => T) {
     this.name = name;
     this.runFunc = runFunc;
   }
@@ -19,8 +19,8 @@ export class ComputedValue<T> implements Input<T> {
     const current = getCurrent();
     if (current) {
       if (!this.cache.has(current)) {
-        current.spawn(this.name, (ref) => {
-          const value = this.runFunc(ref);
+        current.spawn(this.name, (context) => {
+          const value = this.runFunc(context);
           if (this.cache.has(current)) {
             this.cache.get(current)!.set(value);
           } else {
@@ -40,10 +40,10 @@ export class ComputedAsyncValueError extends Error { }
 export class ComputedAsyncValue<T> implements Input<Promise<T>> {
   readonly name: string;
 
-  private readonly runFunc: (comp?: ComputationRef) => T;
+  private readonly runFunc: (comp?: ComputationContext) => T;
   private cache = new WeakMap<Computation, Value<T>>();
 
-  constructor(name: string, runFunc: (comp?: ComputationRef) => T) {
+  constructor(name: string, runFunc: (comp?: ComputationContext) => T) {
     this.name = name;
     this.runFunc = runFunc;
   }
@@ -52,8 +52,8 @@ export class ComputedAsyncValue<T> implements Input<Promise<T>> {
     const current = getCurrent();
     if (current) {
       if (!this.cache.has(current)) {
-        await current.spawnAsync(this.name, async (ref) => {
-          const value = await this.runFunc(ref);
+        await current.spawnAsync(this.name, async (context) => {
+          const value = await this.runFunc(context);
           if (this.cache.has(current)) {
             this.cache.get(current)!.set(value);
           } else {
