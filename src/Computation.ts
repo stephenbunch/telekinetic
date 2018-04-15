@@ -7,32 +7,12 @@ import { DisposedError } from './Disposable';
 import { FrozenSet } from './FrozenSet';
 import { Logger } from './Logger';
 import { OrderedSet } from './OrderedSet';
+import { batch, enqueue } from './batch';
 
 let currentComputation: Computation | null = null;
-let suspendCount = 0;
-let suspendedComputations = new OrderedSet<Computation>();
 let computationStack = new Set<Computation>();
 
 const DISPOSED = 'Computation has been destroyed.';
-
-export function suspend(): void {
-  suspendCount += 1;
-}
-
-export function resume(): void {
-  if (suspendCount > 0) {
-    suspendCount -= 1;
-    if (suspendCount === 0) {
-      const computations = suspendedComputations;
-      suspendedComputations = new OrderedSet<Computation>();
-      for (const computation of computations) {
-        if (computation.isAlive) {
-          computation.rerun();
-        }
-      }
-    }
-  }
-}
 
 export class ComputationError extends Error { }
 
@@ -104,9 +84,6 @@ export class ComputationClass<T> implements Computation {
     if (this.disposed) {
       throw new DisposedError(DISPOSED);
     }
-    if (suspendCount > 0) {
-      throw new ComputationError('Computations are currently suspended.');
-    }
     if (this.context) {
       throw new ComputationError(
         'Computation has already been run once. Call rerun instead.');
@@ -121,10 +98,8 @@ export class ComputationClass<T> implements Computation {
     const func = this.func;
     if (this.parentContext && !this.parentContext.isAlive) {
       this.dispose();
-    } else if (suspendCount > 0) {
-      suspendedComputations.add(this);
     } else {
-      this.exec();
+      enqueue(() => this.isAlive && this.exec(), this);
     }
   }
 

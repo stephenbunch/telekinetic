@@ -4,15 +4,12 @@ import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
-import { observer, computed } from './computed';
+import { computed } from './computed';
 
 interface Item { message: string, count: number }
 
-class ItemBrush extends CollectionBrush<number, Item, string> {
-  name = 'itemBrush';
-}
+class TestBrush extends CollectionBrush<number, Item, string> { }
 
-@observer
 class TestComponent extends ReactiveComponent {
   name = 'testComponent';
 
@@ -35,8 +32,7 @@ class TestComponent extends ReactiveComponent {
     this.count += 1;
     return (
       <ul>
-        <ItemBrush
-          name="brush"
+        <TestBrush
           data={this.data}
           render={this.renderItem}
           sort={this.getSortKey}

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { untracked, ComputationClass } from './Computation';
-import { transaction } from './transaction';
+import { batch } from './batch';
 import { observe } from './observe';
 import { ComputationContext } from './ComputationContext';
 import { ObservableProxy } from './ObservableProxy';
@@ -35,7 +35,7 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__props] === undefined || !this[__proxified]) {
       this[__props] = value;
     } else {
-      transaction(() => Object.assign(this[__props], value));
+      batch(() => Object.assign(this[__props], value));
     }
   }
 
@@ -43,7 +43,6 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__autorun]) {
       this[__autorun].dispose();
     }
-    (this as any).dispose();
   }
 
   render() {
@@ -54,7 +53,6 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     }
     if (!this[__autorun]) {
       const name = `${this.constructor.name}.render`;
-      (this as any).init();
       this[__autorun] = autorun(name, () => {
         let result = this.element;
         if (result !== this[__result]) {

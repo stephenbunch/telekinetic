@@ -24,5 +24,5 @@ export * from './ObservableSet';
 export * from './observe';
 export * from './OrderedSet';
 export * from './ReactiveComponent';
-export * from './transaction';
+export * from './batch';
 export * from './Value';

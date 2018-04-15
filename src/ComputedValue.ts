@@ -3,6 +3,8 @@ import { Dependency } from './Dependency';
 import { getCurrent, Computation } from './Computation';
 import { Input } from './Input';
 import { Value } from './Value';
+import { autorun } from './autorun';
+import { enqueue } from './batch';
 
 function disposePreviousValue<T>(prevValue: T, nextValue: T) {
   const val = prevValue as any;
@@ -14,28 +16,44 @@ function disposePreviousValue<T>(prevValue: T, nextValue: T) {
 export class ComputedValue<T> implements Input<T> {
   readonly name: string;
 
-  private readonly runFunc: (context?: ComputationContext) => T;
-  private readonly computation: Computation;
-  private value: Value<T> | null = null;
+  private readonly producer: () => T;
+  private readonly dependency: Dependency;
 
-  constructor(name: string, computation: Computation, runFunc: (context?: ComputationContext) => T) {
+  private value: T | undefined;
+  private isCold = true;
+  private hasSubscribers = false;
+
+  constructor(name: string, producer: () => T) {
     this.name = name;
-    this.computation = computation;
-    this.runFunc = runFunc;
+    this.dependency = new Dependency(name);
+    this.producer = producer;
   }
 
   get() {
-    if (!this.value) {
-      this.computation.spawn(this.name, (context) => {
-        const result = this.runFunc(context);
-        if (!this.value) {
-          this.value = new Value(this.name, result);
-        } else {
-          this.value.set(result);
+    this.dependency.depend();
+    this.hasSubscribers = true;
+    if (this.isCold) {
+      const comp = autorun(this.name, (context) => {
+        const value = this.producer();
+        // console.log(this.name, context.getTrackedDependencies().map(x => x.name));
+        if (this.isCold) {
+          this.isCold = false;
+          this.value = value;
+        } else if (value !== this.value) {
+          this.value = value;
+          this.hasSubscribers = false;
+          this.dependency.changed();
+          enqueue(() => {
+            if (!this.hasSubscribers) {
+              comp.dispose();
+              this.isCold = true;
+              this.value = undefined;
+            }
+          }, this);
         }
       });
     }
-    return this.value!.get();
+    return this.value!;
   }
 }
 

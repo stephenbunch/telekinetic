@@ -1,8 +1,8 @@
-import { transaction } from './transaction';
+import { batch } from './batch';
 import { bound } from './bound';
 import { CollectionBrushStore } from './CollectionBrushStore';
 import { ComputationContext } from './ComputationContext';
-import { computed, observer } from './computed';
+import { computed } from './computed';
 import { Disposable } from './Disposable';
 import { Event, EventController } from './Event';
 import { untracked } from './Computation';
@@ -12,6 +12,7 @@ import { ObservableSet } from './ObservableSet';
 import { OrderedSet } from './OrderedSet';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
+import { ComputedMap } from './ComputedMap';
 
 interface CollectionBrushControllerDelegate<K, V> {
   onAdd([key, value]: [K, V]): void;
@@ -48,50 +49,43 @@ class CollectionBrushController<K, V, S> implements Disposable {
 }
 
 export interface CollectionBrushProps<K, V, S = any> {
-  name: string;
   data: CollectionBrushStore<K, V>;
   render(value: V): React.ReactNode;
   sort?(value: V): S;
   descending?: boolean;
 }
 
-@observer
 export class CollectionBrush<K, V, S = any> extends
   ReactiveComponent<CollectionBrushProps<K, V, S>> {
 
   @computed
   private get controller(): CollectionBrushController<K, V, S> {
     return new CollectionBrushController(
-      this.props.name, this.props.data, this);
+      this.constructor.name, this.props.data, this);
   }
 
   /**
    * This map stores the sortKey of each entry.
    */
   @computed
-  private get sortKeys(): ObservableMap<K, S> | null {
+  private get sortKeys(): ComputedMap<K, V, S> | null {
     if (this.props.sort) {
-      const sortKeys = new ObservableMap<K, S>(`${this.props.name}.sortKeys`);
-      // We don't want to recreate the map every time a key is added or removed.
-      for (const key of this.controller.store.keys()) {
-        sortKeys.set(key, this.getSortKeyForEntry(key));
-      }
-      return sortKeys;
+      return new ComputedMap<K, V, S>(
+        `${this.constructor.name}.sortKeys`,
+        this.getSortKeySelector(this.props.sort),
+        Array.from(this.controller.store)
+      );
     }
     return null;
   }
 
   @computed
-  private get renderedEntries(): ObservableMap<K, React.ReactNode> {
-    const entries = new ObservableMap<K, React.ReactNode>(
-      `${this.props.name}.renderedEntries`);
-    // Make sure the prop is read even if there are no entries in the
-    // store initially.
-    this.props.render;
-    for (const [key, value] of this.controller.store) {
-      entries.set(key, this.renderEntry(key, value));
-    }
-    return entries;
+  private get renderedEntries(): ComputedMap<K, V, React.ReactNode> {
+    return new ComputedMap<K, V, React.ReactNode>(
+      `${this.constructor.name}.renderedEntries`,
+      this.getEntryRenderer(this.props.render),
+      Array.from(this.controller.store)
+    );
   }
 
   @computed
@@ -115,16 +109,16 @@ export class CollectionBrush<K, V, S = any> extends
 
   @bound
   onAdd([key, value]: [K, V]) {
-    transaction(() => {
+    batch(() => {
       this.controller.keys.add(key);
-      this.sortKeys && this.sortKeys.set(key, this.getSortKeyForEntry(key));
-      this.renderedEntries.set(key, this.renderEntry(key, value));
+      this.sortKeys && this.sortKeys.set(key, value);
+      this.renderedEntries.set(key, value);
     });
   }
 
   @bound
   onDelete([key, value]: [K, V]) {
-    transaction(() => {
+    batch(() => {
       this.controller.keys.delete(key);
       this.sortKeys && this.sortKeys.delete(key);
       this.renderedEntries.delete(key);
@@ -133,21 +127,24 @@ export class CollectionBrush<K, V, S = any> extends
 
   @bound
   onUpdate([key, value]: [K, V]) {
-    transaction(() => {
-      this.sortKeys && this.sortKeys.set(key, this.getSortKeyForEntry(key));
-      this.renderedEntries.set(key, this.renderEntry(key, value));
+    batch(() => {
+      this.sortKeys && this.sortKeys.set(key, value);
+      this.renderedEntries.set(key, value);
     });
   }
 
-  private getSortKeyForEntry(entryKey: K): S {
-    return this.props.sort!(this.controller.store.get(entryKey)!);
+  private getSortKeySelector(selector: (value: V) => S) {
+    return (key: K, value: V) => selector(value);
   }
 
-  private renderEntry(key: K, value: V): React.ReactNode {
-    let node = this.props.render(value) as React.ReactElement<{ key: K }>;
-    if (React.isValidElement(node)) {
-      node = React.cloneElement(node, { key });
-    }
-    return node;
+  private getEntryRenderer(render: (value: V) => React.ReactNode):
+    (key: K, value: V) => React.ReactNode {
+    return (key: K, value: V) => {
+      let node = render(value) as React.ReactElement<{ key: K }>;
+      if (React.isValidElement(node)) {
+        node = React.cloneElement(node, { key });
+      }
+      return node;
+    };
   }
 }

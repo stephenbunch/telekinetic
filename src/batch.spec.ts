@@ -1,8 +1,8 @@
 import { autorun } from './autorun';
-import { transaction, asyncTransaction } from './transaction';
+import { batch, batchAsync } from './batch';
 import { Dependency } from './Dependency';
 
-describe('transaction', () => {
+describe('batch', () => {
   it('should suspend reruns', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
@@ -14,8 +14,8 @@ describe('transaction', () => {
     });
     expect(called).toBe(1);
 
-    transaction(() => {
-      transaction(() => {
+    batch(() => {
+      batch(() => {
         dep1.changed();
         dep2.changed();
         expect(called).toBe(1);
@@ -28,11 +28,11 @@ describe('transaction', () => {
   });
 
   it('should forward the return value', () => {
-    expect(transaction(() => 2)).toBe(2);
+    expect(batch(() => 2)).toBe(2);
   });
 });
 
-describe('asyncTransaction', () => {
+describe('batchAsync', () => {
   it('should suspend reruns', async () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
@@ -44,8 +44,8 @@ describe('asyncTransaction', () => {
     });
     expect(called).toBe(1);
 
-    await asyncTransaction(async () => {
-      await asyncTransaction(async () => {
+    await batchAsync(async () => {
+      await batchAsync(async () => {
         dep1.changed();
         await Promise.resolve();
         dep2.changed();
@@ -59,7 +59,7 @@ describe('asyncTransaction', () => {
   });
 
   it('should forward the return value', async () => {
-    expect(await asyncTransaction(() => Promise.resolve(2))).toBe(2);
+    expect(await batchAsync(() => Promise.resolve(2))).toBe(2);
   });
 
   it('should resume on error', async () => {
@@ -73,7 +73,7 @@ describe('asyncTransaction', () => {
 
     const error = new Error('test');
     try {
-      await asyncTransaction(async () => {
+      await batchAsync(async () => {
         dep.changed();
         dep.changed();
         await Promise.reject(error);

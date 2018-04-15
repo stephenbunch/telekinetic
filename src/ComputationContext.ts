@@ -12,7 +12,7 @@ export interface ComputationContext {
   readonly isAlive: boolean;
   continue<T>(callback: () => T): T;
   fork<T>(name: string, runFunc: RunFunction<T>): T;
-  getTrackedDependencies(): Set<Dependency>;
+  getTrackedDependencies(): Array<Dependency>;
 }
 
 export class ComputationContextClass implements ComputationContext, Disposable {
@@ -92,9 +92,9 @@ export class ComputationContextClass implements ComputationContext, Disposable {
     }
   }
 
-  getTrackedDependencies(): Set<Dependency> {
+  getTrackedDependencies(): Array<Dependency> {
     if (this.isAlive) {
-      return new Set(this.dependencies!.keys());
+      return Array.from(this.dependencies!.keys());
     } else {
       throw new DisposedError(DESTROYED);
     }

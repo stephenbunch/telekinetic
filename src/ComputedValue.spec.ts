@@ -1,5 +1,5 @@
 import { AsyncObserver } from './testing';
-import { transaction } from './transaction';
+import { batch } from './batch';
 import { ComputedValue, ComputedAsyncValue } from './ComputedValue';
 import { observe, observeAsync } from './observe';
 import { Value } from './Value';

@@ -3,16 +3,14 @@ import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
-import { computed, observer } from './computed';
+import { computed } from './computed';
 
 interface Props {
   other: number
   end: string
 }
 
-@observer
 class TestComponent extends ReactiveComponent<Props> {
-  name = 'testComponent';
 
   @observable
   message = 'hello'
