@@ -1,5 +1,5 @@
 import { ComputationContextClass } from './ComputationContext';
-import { getCurrent, ReentrancyError } from './Computation';
+import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
 import { OrderedSet } from './OrderedSet';
 import { bound } from './bound';
@@ -12,9 +12,9 @@ export class Dependency {
   readonly name: string;
 
   private contexts = new OrderedSet<ComputationContextClass>();
-  private readonly onActiveEvent = new EventController();
-  private readonly onInactiveEvent = new EventController();
-  private isActive = false;
+  private readonly onHotEvent = new EventController();
+  private readonly onColdEvent = new EventController();
+  private isHot = false;
 
   constructor(name: string) {
     this.name = name;
@@ -23,26 +23,26 @@ export class Dependency {
   @bound
   private onContextDestroy(context: ComputationContextClass) {
     this.contexts.delete(context);
-    this.checkInactive();
+    this.checkIsCold();
   }
 
-  get onActive(): Event {
-    return this.onActiveEvent;
+  get onHot(): Event {
+    return this.onHotEvent;
   }
 
-  get onInactive(): Event {
-    return this.onInactiveEvent;
+  get onCold(): Event {
+    return this.onColdEvent;
   }
 
   depend(): void {
-    const computation = getCurrent();
+    const computation = getCurrentComputation();
     if (computation && computation.isAlive) {
       const context = computation.context!;
       context.track(this, this.onContextDestroy);
       this.contexts.add(context);
-      if (!this.isActive) {
-        this.isActive = true;
-        this.onActiveEvent.trigger(null);
+      if (!this.isHot) {
+        this.isHot = true;
+        this.onHotEvent.trigger(null);
       }
       // Logger.current.trace(`${computation.name} depends on ${this.name}.`);
     }
@@ -52,7 +52,7 @@ export class Dependency {
     // Logger.current.trace(`${this.name} changed.`);
     const contexts = this.contexts;
     this.contexts = new OrderedSet<ComputationContextClass>();
-    const current = getCurrent();
+    const current = getCurrentComputation();
     for (const context of contexts) {
       if (context.isAlive) {
         if (context.parents!.has(current!)) {
@@ -78,14 +78,14 @@ export class Dependency {
         }
       }
     }
-    this.checkInactive();
+    this.checkIsCold();
   }
 
-  private checkInactive() {
+  private checkIsCold() {
     enqueue(() => {
-      if (!this.isActive && this.contexts.size === 0) {
-        this.isActive = false;
-        this.onInactiveEvent.trigger(null);
+      if (!this.isHot && this.contexts.size === 0) {
+        this.isHot = false;
+        this.onColdEvent.trigger(null);
       }
     }, this);
   }

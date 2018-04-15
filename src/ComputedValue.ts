@@ -23,8 +23,8 @@ export class ComputedValue<T> implements Input<T> {
     this.name = name;
     this.producer = producer;
     this.dependency = new Dependency(name);
-    this.dependency.onActive.addListener(this.onActive);
-    this.dependency.onInactive.addListener(this.onInactive);
+    this.dependency.onHot.addListener(this.onHot);
+    this.dependency.onCold.addListener(this.onCold);
   }
 
   get() {
@@ -36,7 +36,7 @@ export class ComputedValue<T> implements Input<T> {
   }
 
   @bound
-  private onActive() {
+  private onHot() {
     let firstRun = true;
     this.autorun = autorun(this.name, (context) => {
       const value = transaction(() => this.producer());
@@ -53,7 +53,7 @@ export class ComputedValue<T> implements Input<T> {
   }
 
   @bound
-  private onInactive() {
+  private onCold() {
     this.autorun!.dispose();
     this.autorun = undefined;
     this.value = undefined;

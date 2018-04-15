@@ -36,12 +36,14 @@ export type RunFunction<T> = (computation: ComputationContext) => T;
 export function untracked<TResult>(callback: () => TResult): TResult {
   const current = currentComputation;
   currentComputation = null;
-  const result = callback();
-  currentComputation = current;
-  return result;
+  try {
+    return callback();
+  } finally {
+    currentComputation = current;
+  }
 }
 
-export function getCurrent(): Computation | null {
+export function getCurrentComputation(): Computation | null {
   return currentComputation;
 }
 
