@@ -1,5 +1,5 @@
 import { autorun } from './autorun';
-import { batch, batchAsync } from './batch';
+import { transaction, transactionAsync } from './transaction';
 import { Dependency } from './Dependency';
 
 describe('batch', () => {
@@ -14,8 +14,8 @@ describe('batch', () => {
     });
     expect(called).toBe(1);
 
-    batch(() => {
-      batch(() => {
+    transaction(() => {
+      transaction(() => {
         dep1.changed();
         dep2.changed();
         expect(called).toBe(1);
@@ -28,7 +28,7 @@ describe('batch', () => {
   });
 
   it('should forward the return value', () => {
-    expect(batch(() => 2)).toBe(2);
+    expect(transaction(() => 2)).toBe(2);
   });
 });
 
@@ -44,8 +44,8 @@ describe('batchAsync', () => {
     });
     expect(called).toBe(1);
 
-    await batchAsync(async () => {
-      await batchAsync(async () => {
+    await transactionAsync(async () => {
+      await transactionAsync(async () => {
         dep1.changed();
         await Promise.resolve();
         dep2.changed();
@@ -59,7 +59,7 @@ describe('batchAsync', () => {
   });
 
   it('should forward the return value', async () => {
-    expect(await batchAsync(() => Promise.resolve(2))).toBe(2);
+    expect(await transactionAsync(() => Promise.resolve(2))).toBe(2);
   });
 
   it('should resume on error', async () => {
@@ -73,7 +73,7 @@ describe('batchAsync', () => {
 
     const error = new Error('test');
     try {
-      await batchAsync(async () => {
+      await transactionAsync(async () => {
         dep.changed();
         dep.changed();
         await Promise.reject(error);

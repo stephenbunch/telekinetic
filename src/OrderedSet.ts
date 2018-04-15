@@ -16,6 +16,10 @@ export class OrderedSet<T> implements Iterable<T> {
     return this.items[Symbol.iterator]();
   }
 
+  get size(): number {
+    return this.set.size;
+  }
+
   get(index: number): T | undefined {
     return this.items[index];
   }

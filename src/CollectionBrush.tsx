@@ -1,5 +1,4 @@
-import { batch } from './batch';
-import { bound } from './bound';
+import { transaction } from './transaction';
 import { CollectionBrushStore } from './CollectionBrushStore';
 import { ComputationContext } from './ComputationContext';
 import { computed } from './computed';
@@ -13,6 +12,7 @@ import { OrderedSet } from './OrderedSet';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
 import { ComputedMap } from './ComputedMap';
+import { action } from './action';
 
 interface CollectionBrushControllerDelegate<K, V> {
   onAdd([key, value]: [K, V]): void;
@@ -107,30 +107,24 @@ export class CollectionBrush<K, V, S = any> extends
     return <React.Fragment>{entries}</React.Fragment>;
   }
 
-  @bound
+  @action
   onAdd([key, value]: [K, V]) {
-    batch(() => {
-      this.controller.keys.add(key);
-      this.sortKeys && this.sortKeys.set(key, value);
-      this.renderedEntries.set(key, value);
-    });
+    this.controller.keys.add(key);
+    this.sortKeys && this.sortKeys.set(key, value);
+    this.renderedEntries.set(key, value);
   }
 
-  @bound
+  @action
   onDelete([key, value]: [K, V]) {
-    batch(() => {
-      this.controller.keys.delete(key);
-      this.sortKeys && this.sortKeys.delete(key);
-      this.renderedEntries.delete(key);
-    });
+    this.controller.keys.delete(key);
+    this.sortKeys && this.sortKeys.delete(key);
+    this.renderedEntries.delete(key);
   }
 
-  @bound
+  @action
   onUpdate([key, value]: [K, V]) {
-    batch(() => {
-      this.sortKeys && this.sortKeys.set(key, value);
-      this.renderedEntries.set(key, value);
-    });
+    this.sortKeys && this.sortKeys.set(key, value);
+    this.renderedEntries.set(key, value);
   }
 
   private getSortKeySelector(selector: (value: V) => S) {

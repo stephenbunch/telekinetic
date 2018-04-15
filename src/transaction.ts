@@ -37,7 +37,7 @@ export function enqueue(callback: () => any, key?: any) {
   }
 }
 
-export function batch<T>(callback: () => T): T {
+export function transaction<T>(callback: () => T): T {
   try {
     suspend();
     return callback();
@@ -46,7 +46,7 @@ export function batch<T>(callback: () => T): T {
   }
 }
 
-export function batchAsync<T>(callback: () => Promise<T>): Promise<T> {
+export function transactionAsync<T>(callback: () => Promise<T>): Promise<T> {
   suspend();
   return callback().then((result) => {
     resume();

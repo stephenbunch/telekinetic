@@ -1,4 +1,4 @@
-import { batch } from './batch';
+import { transaction } from './transaction';
 import { Dependency } from './Dependency';
 import { ComputedValue } from './ComputedValue';
 import { ObservableMap } from './ObservableMap';
@@ -53,7 +53,7 @@ export class ComputedMap<TKey, TInput, TOutput> {
 
   set(key: TKey, input: TInput): this {
     const isNew = !this.inputs.has(key);
-    batch(() => {
+    transaction(() => {
       this.inputs.set(key, input);
       if (!this.outputs.has(key)) {
         this.createOutputForKey(key);
@@ -63,7 +63,7 @@ export class ComputedMap<TKey, TInput, TOutput> {
   }
 
   delete(key: TKey): boolean {
-    return batch(() => {
+    return transaction(() => {
       const result = this.inputs.delete(key);
       if (result) {
         this.outputs.delete(key);
@@ -100,7 +100,7 @@ export class ComputedMap<TKey, TInput, TOutput> {
 
   clear() {
     if (this.inputs.size > 0) {
-      batch(() => {
+      transaction(() => {
         this.inputs.clear();
         this.outputs.clear();
       });

@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { untracked, ComputationClass } from './Computation';
-import { batch } from './batch';
+import { transaction } from './transaction';
 import { observe } from './observe';
 import { ComputationContext } from './ComputationContext';
 import { ObservableProxy } from './ObservableProxy';
@@ -35,7 +35,7 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__props] === undefined || !this[__proxified]) {
       this[__props] = value;
     } else {
-      batch(() => Object.assign(this[__props], value));
+      transaction(() => Object.assign(this[__props], value));
     }
   }
 
