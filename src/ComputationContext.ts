@@ -1,5 +1,5 @@
 import { Computation, ComputationClass, RunFunction } from './Computation';
-import { DestroyedError } from './DisposedError';
+import { Disposable, DisposedError } from './Disposable';
 import { FrozenSet } from './FrozenSet';
 import { Dependency } from './Dependency';
 
@@ -15,10 +15,10 @@ export interface ComputationContext {
   getTrackedDependencies(): Set<Dependency>;
 }
 
-export class ComputationContextClass {
+export class ComputationContextClass implements ComputationContext, Disposable {
   private dependencies: Map<Dependency,
     ComputationContextClassEventListener> | null;
-  private destroyed = false;
+  private disposed = false;
 
   readonly name: string;
   computation: Computation | null;
@@ -42,7 +42,7 @@ export class ComputationContextClass {
   }
 
   get isAlive(): boolean {
-    return !this.destroyed;
+    return !this.disposed;
   }
 
   track(dependency: Dependency,
@@ -52,7 +52,7 @@ export class ComputationContextClass {
         this.dependencies!.set(dependency, onDestroy);
       }
     } else {
-      throw new DestroyedError(DESTROYED);
+      throw new DisposedError(DESTROYED);
     }
   }
 
@@ -60,7 +60,7 @@ export class ComputationContextClass {
     if (this.isAlive) {
       return this.computation!.continue(callback);
     } else {
-      throw new DestroyedError(DESTROYED);
+      throw new DisposedError(DESTROYED);
     }
   }
 
@@ -71,18 +71,18 @@ export class ComputationContextClass {
       this.children!.push(comp);
       return comp.run();
     } else {
-      throw new DestroyedError(DESTROYED);
+      throw new DisposedError(DESTROYED);
     }
   }
 
-  destroy() {
+  dispose() {
     if (this.isAlive) {
-      this.destroyed = true;
+      this.disposed = true;
       for (const callback of this.dependencies!.values()) {
         callback(this);
       }
       for (const child of this.children!) {
-        child.destroy();
+        child.dispose();
       }
       this.computation = null;
       this.parents = null;
@@ -96,7 +96,7 @@ export class ComputationContextClass {
     if (this.isAlive) {
       return new Set(this.dependencies!.keys());
     } else {
-      throw new DestroyedError(DESTROYED);
+      throw new DisposedError(DESTROYED);
     }
   }
 }

@@ -1,17 +1,18 @@
+export * from './autorun';
+export * from './bound';
+export * from './CollectionBrush';
+export * from './CollectionBrushStore';
 export {
   ComputationError,
-  exclude,
+  untracked,
   ReentrancyError,
   RunFunction,
 } from './Computation';
 export { ComputationContext } from './ComputationContext';
-export * from './autorun';
-export * from './batchUpdate';
-export * from './bound';
-export * from './CollectionBrush';
+export * from './computed';
 export * from './ComputedValue';
 export * from './Dependency';
-export * from './DisposedError';
+export * from './Disposable';
 export * from './Event';
 export * from './Input';
 export * from './KeyedDependency';
@@ -23,4 +24,5 @@ export * from './ObservableSet';
 export * from './observe';
 export * from './OrderedSet';
 export * from './ReactiveComponent';
+export * from './transaction';
 export * from './Value';

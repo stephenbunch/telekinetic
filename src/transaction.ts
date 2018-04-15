@@ -1,6 +1,6 @@
 import { suspend, resume } from './Computation';
 
-export function batchUpdate<T>(callback: () => T): T {
+export function transaction<T>(callback: () => T): T {
   try {
     suspend();
     return callback();
@@ -9,7 +9,7 @@ export function batchUpdate<T>(callback: () => T): T {
   }
 }
 
-export function batchUpdateAsync<T>(callback: () => Promise<T>): Promise<T> {
+export function asyncTransaction<T>(callback: () => Promise<T>): Promise<T> {
   suspend();
   return callback().then((result) => {
     resume();

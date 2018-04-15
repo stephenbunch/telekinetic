@@ -1,8 +1,8 @@
 import { autorun } from './autorun';
-import { batchUpdate, batchUpdateAsync } from './batchUpdate';
+import { transaction, asyncTransaction } from './transaction';
 import { Dependency } from './Dependency';
 
-describe('batchUpdate', () => {
+describe('transaction', () => {
   it('should suspend reruns', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
@@ -14,8 +14,8 @@ describe('batchUpdate', () => {
     });
     expect(called).toBe(1);
 
-    batchUpdate(() => {
-      batchUpdate(() => {
+    transaction(() => {
+      transaction(() => {
         dep1.changed();
         dep2.changed();
         expect(called).toBe(1);
@@ -24,15 +24,15 @@ describe('batchUpdate', () => {
     });
 
     expect(called).toBe(2);
-    auto.destroy();
+    auto.dispose();
   });
 
   it('should forward the return value', () => {
-    expect(batchUpdate(() => 2)).toBe(2);
+    expect(transaction(() => 2)).toBe(2);
   });
 });
 
-describe('batchUpdateAsync', () => {
+describe('asyncTransaction', () => {
   it('should suspend reruns', async () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
@@ -44,8 +44,8 @@ describe('batchUpdateAsync', () => {
     });
     expect(called).toBe(1);
 
-    await batchUpdateAsync(async () => {
-      await batchUpdateAsync(async () => {
+    await asyncTransaction(async () => {
+      await asyncTransaction(async () => {
         dep1.changed();
         await Promise.resolve();
         dep2.changed();
@@ -55,11 +55,11 @@ describe('batchUpdateAsync', () => {
     });
 
     expect(called).toBe(2);
-    auto.destroy();
+    auto.dispose();
   });
 
   it('should forward the return value', async () => {
-    expect(await batchUpdateAsync(() => Promise.resolve(2))).toBe(2);
+    expect(await asyncTransaction(() => Promise.resolve(2))).toBe(2);
   });
 
   it('should resume on error', async () => {
@@ -73,7 +73,7 @@ describe('batchUpdateAsync', () => {
 
     const error = new Error('test');
     try {
-      await batchUpdateAsync(async () => {
+      await asyncTransaction(async () => {
         dep.changed();
         dep.changed();
         await Promise.reject(error);
@@ -87,6 +87,6 @@ describe('batchUpdateAsync', () => {
     dep.changed();
     expect(called).toBe(3);
 
-    auto.destroy();
+    auto.dispose();
   });
 });

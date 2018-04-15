@@ -66,4 +66,9 @@ export class OrderedSet<T> implements Iterable<T> {
   toArray(): Array<T> {
     return this.items.slice();
   }
+
+  clear() {
+    this.set.clear();
+    this.items = [];
+  }
 }

@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { exclude, Computation } from './Computation';
-import { batchUpdate } from './batchUpdate';
+import { untracked, ComputationClass } from './Computation';
+import { transaction } from './transaction';
 import { observe } from './observe';
 import { ComputationContext } from './ComputationContext';
 import { ObservableProxy } from './ObservableProxy';
-import { Subscription } from 'rxjs/Subscription';
+import { Autorun, autorun } from './autorun';
 
 function proxify<T>(name: string, props: T): T {
   const obj = {} as T;
@@ -19,13 +19,13 @@ export const __proxified = Symbol('proxified');
 export const __rendering = Symbol('rendering');
 
 export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
-  private [__autorun]: Subscription | null = null;
+  private [__autorun]: Autorun;
   private [__result]: React.ReactNode = null;
   private [__proxified] = false;
   private [__props]: P | undefined;
   private [__rendering] = false;
 
-  abstract get name(): string;
+  abstract readonly element: React.ReactNode;
 
   get props(): Readonly<P> {
     return this[__props]!;
@@ -35,41 +35,35 @@ export abstract class ReactiveComponent<P = {}> extends React.Component<P> {
     if (this[__props] === undefined || !this[__proxified]) {
       this[__props] = value;
     } else {
-      batchUpdate(() => Object.assign(this[__props], value));
+      transaction(() => Object.assign(this[__props], value));
     }
   }
 
-  construct?(computation: ComputationContext): any;
-
-  abstract compute(): React.ReactNode;
-
   componentWillUnmount() {
     if (this[__autorun]) {
-      this[__autorun]!.unsubscribe();
-      this[__autorun] = null;
+      this[__autorun].dispose();
     }
+    (this as any).dispose();
   }
 
   render() {
     this[__rendering] = true;
     if (!this[__proxified]) {
-      this[__props] = proxify(`${this.name}.props`, this[__props]);
+      this[__props] = proxify(`${this.constructor.name}.props`, this[__props]);
       this[__proxified] = true;
     }
-    if (this[__autorun] === null) {
-      const name = `${this.name}.render`;
-      this[__autorun] = observe(name, (root) => {
-        root.fork('construct', (ctx) => this.construct && this.construct(ctx));
-        root.fork('compute', () => {
-          let result = this.compute();
-          if (result !== this[__result]) {
-            this[__result] = result;
-            if (!this[__rendering]) {
-              exclude(() => this.forceUpdate());
-            }
+    if (!this[__autorun]) {
+      const name = `${this.constructor.name}.render`;
+      (this as any).init();
+      this[__autorun] = autorun(name, () => {
+        let result = this.element;
+        if (result !== this[__result]) {
+          this[__result] = result;
+          if (!this[__rendering]) {
+            untracked(() => this.forceUpdate());
           }
-        });
-      }).subscribe();
+        }
+      });
     }
     this[__rendering] = false;
     return this[__result];

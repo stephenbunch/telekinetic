@@ -1,8 +1,10 @@
-import { CollectionBrush, CollectionBrushStore } from './CollectionBrush';
+import { CollectionBrush } from './CollectionBrush';
+import { CollectionBrushStore } from './CollectionBrushStore';
 import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
+import { observer, computed } from './computed';
 
 interface Item { message: string, count: number }
 
@@ -10,6 +12,7 @@ class ItemBrush extends CollectionBrush<number, Item, string> {
   name = 'itemBrush';
 }
 
+@observer
 class TestComponent extends ReactiveComponent {
   name = 'testComponent';
 
@@ -27,7 +30,8 @@ class TestComponent extends ReactiveComponent {
     return <li>{item.message}</li>
   };
 
-  compute() {
+  @computed
+  get element(): React.ReactNode {
     this.count += 1;
     return (
       <ul>

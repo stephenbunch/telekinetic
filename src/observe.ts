@@ -13,7 +13,7 @@ export function observe<T>(name: string,
       }
     });
     return () => {
-      auto.destroy();
+      auto.dispose();
     };
   });
 }
@@ -29,7 +29,7 @@ export function observeAsync<T>(name: string,
       }
     });
     return () => {
-      auto.destroy();
+      auto.dispose();
     };
   });
 }

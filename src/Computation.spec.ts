@@ -1,15 +1,15 @@
 import { Dependency } from './Dependency';
-import { exclude } from './Computation';
+import { untracked } from './Computation';
 import { observe } from './observe';
 
-describe('exclude', () => {
+describe('untracked', () => {
   it('should run the callback outside of any autorun', () => {
     const dep1 = new Dependency('dep1');
     const dep2 = new Dependency('dep2');
     let called = 0;
     const sub = observe('main', () => {
       dep1.depend();
-      exclude(() => {
+      untracked(() => {
         dep2.depend();
       });
       called += 1;
@@ -28,7 +28,7 @@ describe('exclude', () => {
   it('should forward the return value', () => {
     let result: number | undefined;
     const sub = observe('main', () => {
-      result = exclude(() => 2);
+      result = untracked(() => 2);
     }).subscribe();
     expect(result).toBe(2);
     sub.unsubscribe();

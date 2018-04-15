@@ -3,12 +3,14 @@ import { mount } from 'enzyme';
 import { observable } from './observable';
 import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
+import { computed, observer } from './computed';
 
 interface Props {
   other: number
   end: string
 }
 
+@observer
 class TestComponent extends ReactiveComponent<Props> {
   name = 'testComponent';
 
@@ -17,14 +19,13 @@ class TestComponent extends ReactiveComponent<Props> {
 
   renderCount = 0;
 
-  @observable
-  text = '';
-
-  construct(computation: ComputationContext) {
-    this.text = this.message + this.props.end;
+  @computed
+  get text() {
+    return this.message + this.props.end;
   }
 
-  compute() {
+  @computed
+  get element() {
     this.renderCount += 1;
     return <div>{this.text}</div>;
   }

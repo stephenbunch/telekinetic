@@ -1,9 +1,9 @@
 import { RunFunction, ComputationClass } from './Computation';
+import { Disposable } from './Disposable';
 
-export interface Autorun {
+export interface Autorun extends Disposable {
   readonly name: string;
   readonly isAlive: boolean;
-  destroy(): void;
 }
 
 export function autorun(name: string, runFunc: RunFunction<void>): Autorun {

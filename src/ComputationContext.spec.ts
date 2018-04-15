@@ -1,5 +1,5 @@
 import { Dependency } from './Dependency';
-import { DestroyedError } from './DisposedError';
+import { DisposedError } from './Disposable';
 import { observe, observeAsync } from './observe';
 import { AsyncObserver } from './testing';
 
