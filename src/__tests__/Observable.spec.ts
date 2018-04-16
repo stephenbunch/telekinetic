@@ -1,6 +1,6 @@
 import { Name } from '../Name';
 import { Observable } from '../decorators/Observable';
-import { observe } from '../observe';
+import { observe } from '../rxjs/observe';
 
 describe('Observable', () => {
   it('should setup dependency tracking on class members', () => {

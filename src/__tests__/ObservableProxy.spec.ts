@@ -1,6 +1,6 @@
 import { Name } from '../Name';
 import { ObservableProxy } from '../ObservableProxy';
-import { observe } from '../observe';
+import { observe } from '../rxjs/observe';
 
 describe('ObservableProxy', () => {
   it('should setup dependencies', () => {

@@ -3,7 +3,7 @@ import { autorun } from '../autorun';
 import { Deferred } from './utils/Deferred';
 import { Dependency, CircularDependencyError } from '../Dependency';
 import { Name } from '../Name';
-import { observe, observeAsync } from '../observe';
+import { observe, observeAsync } from '../rxjs/observe';
 import { sleep } from './utils/sleep';
 
 it('should run again when a dependency changes', () => {

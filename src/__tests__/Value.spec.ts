@@ -1,5 +1,5 @@
 import { Name } from '../Name';
-import { observe } from '../observe';
+import { observe } from '../rxjs/observe';
 import { Value } from '../Value';
 
 it('should register a dependency', () => {

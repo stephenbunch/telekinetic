@@ -1,6 +1,6 @@
 import { Name } from '../Name';
 import { ObservableMap } from '../ObservableMap';
-import { observe } from '../observe';
+import { observe } from '../rxjs/observe';
 
 describe('ObservableMap', () => {
   it('should track a dependency when getting the size', () => {

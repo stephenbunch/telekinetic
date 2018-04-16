@@ -1,7 +1,7 @@
-import { autorun } from './autorun';
-import { Name } from './Name';
+import { autorun } from '../autorun';
+import { Name } from '../Name';
 import { Observable } from 'rxjs/Observable';
-import { RunFunction } from './Computation';
+import { RunFunction } from '../Computation';
 
 export function observe<T>(name: Name,
   runFunc: RunFunction<T>): Observable<T> {

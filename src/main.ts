@@ -24,6 +24,6 @@ export * from './Name';
 export * from './ObservableMap';
 export * from './ObservableProxy';
 export * from './ObservableSet';
-export * from './observe';
+export * from './rxjs/observe';
 export * from './transaction';
 export * from './Value';

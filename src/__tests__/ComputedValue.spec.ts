@@ -1,7 +1,7 @@
 import { AsyncObserver } from './utils/AsyncObserver';
 import { ComputedValue } from '../ComputedValue';
 import { Name } from '../Name';
-import { observe, observeAsync } from '../observe';
+import { observe, observeAsync } from '../rxjs/observe';
 import { transaction } from '../transaction';
 import { Value } from '../Value';
 

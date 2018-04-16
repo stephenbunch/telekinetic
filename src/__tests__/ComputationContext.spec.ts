@@ -2,7 +2,7 @@ import { AsyncObserver } from './utils/AsyncObserver';
 import { Dependency } from '../Dependency';
 import { DisposedError } from '../Disposable';
 import { Name } from '../Name';
-import { observe, observeAsync } from '../observe';
+import { observe, observeAsync } from '../rxjs/observe';
 
 describe('fork', () => {
   it('should not run if the parent has been disposed', () => {

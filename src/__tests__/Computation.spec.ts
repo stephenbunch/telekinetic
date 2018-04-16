@@ -1,6 +1,6 @@
 import { Dependency } from '../Dependency';
 import { Name } from '../Name';
-import { observe } from '../observe';
+import { observe } from '../rxjs/observe';
 import { untracked } from '../Computation';
 
 describe('untracked', () => {
