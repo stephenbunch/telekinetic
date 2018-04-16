@@ -1,9 +1,9 @@
-import { bound } from '../internal/bound';
+import { Bound } from '../internal/Bound';
 
 describe('@bound', () => {
   it('should bind methods to the self', () => {
     class Foo {
-      @bound
+      @Bound
       bar(): this {
         return this;
       }

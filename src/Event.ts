@@ -2,12 +2,12 @@ import { OrderedSet } from './internal/OrderedSet';
 
 export type EventListener<T> = (eventArgs: T) => void;
 
-export interface Event<T = null> {
+export interface Event<T = undefined> {
   addListener(listener: EventListener<T>): void;
   removeListener(listener: EventListener<T>): void;
 }
 
-export class EventController<T = null> implements Event<T> {
+export class EventController<T = undefined> implements Event<T> {
   private listeners = new OrderedSet<EventListener<T>>();
 
   addListener(listener: EventListener<T>) {

@@ -1,23 +1,23 @@
 import { Dependency } from './Dependency';
 import { Input } from './Input';
-
-export type ValueChangeEventListener<T> = (prevValue: T, nextValue: T) => void;
+import { Store } from './Store';
+import { Bound } from './internal/Bound';
 
 export class Value<T> implements Input<T> {
   readonly name: string;
-  private value: T;
-  private dependency: Dependency;
-  private onChange: ValueChangeEventListener<T> | undefined;
 
-  constructor(name: string, initialValue: T,
-    onChange?: ValueChangeEventListener<T>) {
+  private readonly dependency: Dependency;
+  private value: T;
+  private store: Store | undefined;
+
+  static store: Store | undefined;
+
+  constructor(name: string, initialValue: T) {
     this.name = name;
     this.value = initialValue;
     this.dependency = new Dependency(name);
-  }
-
-  get input(): Input<T> {
-    return this;
+    this.dependency.onHot.addListener(this.onHot);
+    this.dependency.onCold.addListener(this.onCold);
   }
 
   get() {
@@ -29,10 +29,17 @@ export class Value<T> implements Input<T> {
     if (this.value !== value) {
       const prevValue = this.value;
       this.value = value;
-      if (this.onChange) {
-        this.onChange(prevValue, value);
-      }
       this.dependency.changed();
     }
+  }
+
+  @Bound
+  private onHot() {
+    this.store = Value.store;
+  }
+
+  @Bound
+  private onCold() {
+    this.store = undefined;
   }
 }

@@ -2,15 +2,15 @@ import { ComputationContext } from '../ComputationContext';
 import { mount } from 'enzyme';
 import { observable } from '../observable';
 import * as React from 'react';
-import { computed } from '../computed';
-import { observer } from '../observer';
+import { Computed } from '../Computed';
+import { Observer } from '../Observer';
 
 interface Props {
   other: number
   end: string
 }
 
-@observer
+@Observer
 class TestComponent extends React.Component<Props> {
 
   @observable
@@ -18,7 +18,7 @@ class TestComponent extends React.Component<Props> {
 
   renderCount = 0;
 
-  @computed
+  @Computed
   get text() {
     return this.message + this.props.end;
   }

@@ -1,11 +1,11 @@
-import { action } from './action';
+import { Action } from './Action';
 import { Collection } from './Collection';
 import { CollectionObserver } from './CollectionObserver';
-import { computed } from './computed';
+import { Computed } from './Computed';
 import { ComputedMap } from './ComputedMap';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
-import { observer } from './observer';
+import { Observer } from './Observer';
 import * as React from 'react';
 
 type ItemRenderer<TItem> = (item: TItem) => React.ReactNode;
@@ -17,11 +17,11 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
   descending?: boolean;
 }
 
-@observer
+@Observer
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 
-  @computed
+  @Computed
   private get observer(): CollectionObserver<TKey, TItem> {
     return new CollectionObserver(this.props.data, this);
   }
@@ -29,7 +29,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   /**
    * This set will keep track of new and deleted entries.
    */
-  @computed
+  @Computed
   private get keys(): ObservableSet<TKey> {
     return new ObservableSet(
       `${this.constructor.name}.keys`, this.observer.collection.keys());
@@ -38,7 +38,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   /**
    * This map stores the sortKey of each entry.
    */
-  @computed
+  @Computed
   private get sortKeys(): ComputedMap<TKey, TItem, TSortKey> | null {
     if (this.props.sort) {
       return new ComputedMap<TKey, TItem, TSortKey>(
@@ -50,7 +50,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     return null;
   }
 
-  @computed
+  @Computed
   private get renderedItems(): ComputedMap<TKey, TItem, React.ReactNode> {
     return new ComputedMap<TKey, TItem, React.ReactNode>(
       `${this.constructor.name}.renderedEntries`,
@@ -59,7 +59,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     );
   }
 
-  @computed
+  @Computed
   private get sortedKeys(): Array<TKey> {
     const sortedKeys = Array.from(this.keys);
     if (this.props.sort) {
@@ -87,21 +87,21 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     return <React.Fragment>{items}</React.Fragment>;
   }
 
-  @action
+  @Action
   onAdd([key, item]: [TKey, TItem]) {
     this.keys.add(key);
     this.sortKeys && this.sortKeys.set(key, item);
     this.renderedItems.set(key, item);
   }
 
-  @action
+  @Action
   onDelete([key, item]: [TKey, TItem]) {
     this.keys.delete(key);
     this.sortKeys && this.sortKeys.delete(key);
     this.renderedItems.delete(key);
   }
 
-  @action
+  @Action
   onUpdate([key, item]: [TKey, TItem]) {
     this.sortKeys && this.sortKeys.set(key, item);
     this.renderedItems.set(key, item);

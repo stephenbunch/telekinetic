@@ -1,16 +1,16 @@
 import { Collection } from '../Collection';
 import { CollectionBrush } from '../CollectionBrush';
-import { computed } from '../computed';
+import { Computed } from '../Computed';
 import { mount } from 'enzyme';
 import { observable } from '../observable';
-import { observer } from '../observer';
+import { Observer } from '../Observer';
 import * as React from 'react';
 
 interface Item { message: string, count: number }
 
 class TestBrush extends CollectionBrush<number, Item, string> { }
 
-@observer
+@Observer
 class TestComponent extends React.Component {
   data = new Collection<number, Item>();
 

@@ -1,5 +1,3 @@
-import { OrderedSet } from './OrderedSet';
-
 let suspendCount = 0;
 let keys = new Set();
 let queue: Array<() => any> = [];

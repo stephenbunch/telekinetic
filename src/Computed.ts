@@ -2,7 +2,7 @@ import { ComputedValue } from './ComputedValue';
 
 const valuesByInstance = new WeakMap<any, Map<PropertyKey, ComputedValue<any>>>();
 
-export function computed(target: any, key: PropertyKey,
+export function Computed(target: any, key: PropertyKey,
   descriptor: PropertyDescriptor): PropertyDescriptor {
   const get = descriptor.get!;
   descriptor.get = function () {

@@ -32,7 +32,7 @@ interface ReactComponentClass {
   new(): ReactComponent;
 }
 
-export function observer<T extends Function>(constructor: T): T {
+export function Observer<T extends Function>(constructor: T): T {
   const name = constructor.name;
   class type extends (constructor as any as ReactComponentClass) {
     get props() {

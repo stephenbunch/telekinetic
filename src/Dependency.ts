@@ -2,7 +2,7 @@ import { ComputationContextClass } from './ComputationContext';
 import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
 import { OrderedSet } from './internal/OrderedSet';
-import { bound } from './internal/bound';
+import { Bound } from './internal/Bound';
 import { Event, EventController } from './Event';
 import { enqueue } from './transaction';
 
@@ -20,7 +20,7 @@ export class Dependency {
     this.name = name;
   }
 
-  @bound
+  @Bound
   private onContextDestroy(context: ComputationContextClass) {
     this.contexts.delete(context);
     this.checkIsCold();
@@ -44,7 +44,7 @@ export class Dependency {
       this.contexts.add(context);
       if (!this.isHot) {
         this.isHot = true;
-        this.onHotEvent.trigger(null);
+        this.onHotEvent.trigger(undefined);
       }
     }
   }
@@ -88,7 +88,7 @@ export class Dependency {
     enqueue(() => {
       if (!this.isHot && this.contexts.size === 0) {
         this.isHot = false;
-        this.onColdEvent.trigger(null);
+        this.onColdEvent.trigger(undefined);
       }
     }, this);
   }
