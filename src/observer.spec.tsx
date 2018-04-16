@@ -1,16 +1,17 @@
 import { ComputationContext } from './ComputationContext';
 import { mount } from 'enzyme';
 import { observable } from './observable';
-import { ReactiveComponent } from './ReactiveComponent';
 import * as React from 'react';
 import { computed } from './computed';
+import { observer } from './observer';
 
 interface Props {
   other: number
   end: string
 }
 
-class TestComponent extends ReactiveComponent<Props> {
+@observer
+class TestComponent extends React.Component<Props> {
 
   @observable
   message = 'hello'
@@ -22,14 +23,13 @@ class TestComponent extends ReactiveComponent<Props> {
     return this.message + this.props.end;
   }
 
-  @computed
-  get element() {
+  render() {
     this.renderCount += 1;
     return <div>{this.text}</div>;
   }
 }
 
-describe('ReactiveComponent', () => {
+describe('observer', () => {
   it('should automatically update when observable changes', () => {
     const wrapper = mount(<TestComponent end="!" other={0} />);
     const inst = wrapper.instance() as TestComponent;

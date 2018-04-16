@@ -147,7 +147,7 @@ export class ComputationClass<T> implements Computation {
       }
       computationStack.add(currentComputation!);
     }
-    Logger.current.trace(`Starting ${this.name}.`);
+    Logger.current.trace(() => [`Starting ${this.name}.`]);
     const current = currentComputation;
     currentComputation = this;
     try {
@@ -162,7 +162,7 @@ export class ComputationClass<T> implements Computation {
       if (currentComputation) {
         computationStack.delete(currentComputation);
       }
-      Logger.current.trace(`Finished ${this.name}.`);
+      Logger.current.trace(() => [`Finished ${this.name}.`]);
     }
   }
 }

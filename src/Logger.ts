@@ -16,9 +16,9 @@ export class Logger {
     this.level = level;
   }
 
-  trace(message?: string, ...params: any[]) {
+  trace(message: () => any[]) {
     if (this.level >= LogLevel.TRACE) {
-      console.log(message, ...params);
+      console.log(...message());
     }
   }
 }

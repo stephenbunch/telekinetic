@@ -1,6 +1,6 @@
 import { Event, EventController } from './Event';
 
-export class CollectionBrushStore<K, V> implements Iterable<[K, V]> {
+export class Store<K, V> implements Iterable<[K, V]> {
   private store = new Map<K, V>();
   private onAddEvent = new EventController<[K, V]>();
   private onDeleteEvent = new EventController<[K, V]>();

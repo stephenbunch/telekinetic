@@ -1,8 +1,9 @@
+import { autorun, Autorun } from './autorun';
+import { bound } from './bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
-import { autorun, Autorun } from './autorun';
+import { Logger } from './Logger';
 import { transaction } from './transaction';
-import { bound } from './bound';
 
 function dispose(value: any) {
   if (value && typeof value.dispose === 'function') {
@@ -40,7 +41,10 @@ export class ComputedValue<T> implements Input<T> {
     let firstRun = true;
     this.autorun = autorun(this.name, (context) => {
       const value = transaction(() => this.producer());
-      // console.log(this.name, context.getTrackedDependencies().map(x => x.name));
+      Logger.current.trace(() => [
+        `Tracked dependencies for ${this.name}:`,
+        context.getTrackedDependencies().map(x => x.name),
+      ]);
       if (firstRun) {
         firstRun = false;
         this.value = value;

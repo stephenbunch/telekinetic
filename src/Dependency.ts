@@ -37,6 +37,8 @@ export class Dependency {
   depend(): void {
     const computation = getCurrentComputation();
     if (computation && computation.isAlive) {
+      Logger.current.trace(
+        () => [`${computation.name} depends on ${this.name}.`]);
       const context = computation.context!;
       context.track(this, this.onContextDestroy);
       this.contexts.add(context);
@@ -44,41 +46,42 @@ export class Dependency {
         this.isHot = true;
         this.onHotEvent.trigger(null);
       }
-      // Logger.current.trace(`${computation.name} depends on ${this.name}.`);
     }
   }
 
   changed(): void {
-    // Logger.current.trace(`${this.name} changed.`);
-    const contexts = this.contexts;
-    this.contexts = new OrderedSet<ComputationContextClass>();
-    const current = getCurrentComputation();
-    for (const context of contexts) {
-      if (context.isAlive) {
-        if (context.parents!.has(current!)) {
-          throw new CircularDependencyError(
-            `${this.name} was changed in autorun ` +
-            `${current!.name} after being depended on.`
-          );
-        }
-        try {
-          context.computation!.rerun();
-        } catch (err) {
-          // If we get a reentrancy error, it's because another autorun which
-          // depended on this value (directly or indirectly) triggered a change
-          // in this autorun.
-          if (err instanceof ReentrancyError) {
+    if (this.isHot) {
+      Logger.current.trace(() => [`${this.name} changed.`]);
+      const contexts = this.contexts;
+      this.contexts = new OrderedSet<ComputationContextClass>();
+      const current = getCurrentComputation();
+      for (const context of contexts) {
+        if (context.isAlive) {
+          if (context.parents!.has(current!)) {
             throw new CircularDependencyError(
-              `Changing ${this.name} caused another autorun to rerun ` +
-              `which caused another change to this value.`
+              `${this.name} was changed in autorun ` +
+              `${current!.name} after being depended on.`
             );
-          } else {
-            throw err;
+          }
+          try {
+            context.computation!.rerun();
+          } catch (err) {
+            // If we get a reentrancy error, it's because another autorun which
+            // depended on this value (directly or indirectly) triggered a change
+            // in this autorun.
+            if (err instanceof ReentrancyError) {
+              throw new CircularDependencyError(
+                `Changing ${this.name} caused another autorun to rerun ` +
+                `which caused another change to this value.`
+              );
+            } else {
+              throw err;
+            }
           }
         }
       }
+      this.checkIsCold();
     }
-    this.checkIsCold();
   }
 
   private checkIsCold() {

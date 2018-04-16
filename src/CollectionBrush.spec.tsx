@@ -1,19 +1,20 @@
 import { CollectionBrush } from './CollectionBrush';
-import { CollectionBrushStore } from './CollectionBrushStore';
+import { computed } from './computed';
 import { mount } from 'enzyme';
 import { observable } from './observable';
-import { ReactiveComponent } from './ReactiveComponent';
+import { observer } from './observer';
+import { Store } from './Store';
 import * as React from 'react';
-import { computed } from './computed';
 
 interface Item { message: string, count: number }
 
 class TestBrush extends CollectionBrush<number, Item, string> { }
 
-class TestComponent extends ReactiveComponent {
+@observer
+class TestComponent extends React.Component {
   name = 'testComponent';
 
-  data = new CollectionBrushStore<number, Item>();
+  data = new Store<number, Item>();
 
   count = 0;
 
@@ -27,8 +28,7 @@ class TestComponent extends ReactiveComponent {
     return <li>{item.message}</li>
   };
 
-  @computed
-  get element(): React.ReactNode {
+  render() {
     this.count += 1;
     return (
       <ul>
