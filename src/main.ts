@@ -18,7 +18,7 @@ export * from './Disposable';
 export * from './Event';
 export * from './Input';
 export * from './Logger';
-export * from './observable';
+export * from './Observable';
 export * from './ObservableMap';
 export * from './ObservableProxy';
 export * from './ObservableSet';

@@ -21,7 +21,7 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 
-  @Computed
+  @Computed()
   private get observer(): CollectionObserver<TKey, TItem> {
     return new CollectionObserver(this.props.data, this);
   }
@@ -29,7 +29,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   /**
    * This set will keep track of new and deleted entries.
    */
-  @Computed
+  @Computed()
   private get keys(): ObservableSet<TKey> {
     return new ObservableSet(
       `${this.constructor.name}.keys`, this.observer.collection.keys());
@@ -38,7 +38,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   /**
    * This map stores the sortKey of each entry.
    */
-  @Computed
+  @Computed()
   private get sortKeys(): ComputedMap<TKey, TItem, TSortKey> | null {
     if (this.props.sort) {
       return new ComputedMap<TKey, TItem, TSortKey>(
@@ -50,7 +50,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     return null;
   }
 
-  @Computed
+  @Computed()
   private get renderedItems(): ComputedMap<TKey, TItem, React.ReactNode> {
     return new ComputedMap<TKey, TItem, React.ReactNode>(
       `${this.constructor.name}.renderedEntries`,
@@ -59,7 +59,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     );
   }
 
-  @Computed
+  @Computed()
   private get sortedKeys(): Array<TKey> {
     const sortedKeys = Array.from(this.keys);
     if (this.props.sort) {
@@ -87,21 +87,21 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     return <React.Fragment>{items}</React.Fragment>;
   }
 
-  @Action
+  @Action()
   onAdd([key, item]: [TKey, TItem]) {
     this.keys.add(key);
     this.sortKeys && this.sortKeys.set(key, item);
     this.renderedItems.set(key, item);
   }
 
-  @Action
+  @Action()
   onDelete([key, item]: [TKey, TItem]) {
     this.keys.delete(key);
     this.sortKeys && this.sortKeys.delete(key);
     this.renderedItems.delete(key);
   }
 
-  @Action
+  @Action()
   onUpdate([key, item]: [TKey, TItem]) {
     this.sortKeys && this.sortKeys.set(key, item);
     this.renderedItems.set(key, item);

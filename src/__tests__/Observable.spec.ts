@@ -1,10 +1,10 @@
 import { observe } from '../observe';
-import { observable } from '../observable';
+import { Observable } from '../Observable';
 
 describe('@observable', () => {
   it('should setup dependency tracking on class members', () => {
     class Test {
-      @observable
+      @Observable()
       foo = 2;
     }
     const obj = new Test();
@@ -19,7 +19,7 @@ describe('@observable', () => {
 
   it('should setup dependency tracking on static members', () => {
     class Test {
-      @observable
+      @Observable()
       static bar = 2;
     }
     let result = 0;

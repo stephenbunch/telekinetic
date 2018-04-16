@@ -56,30 +56,32 @@ function setValue(obj: ObservableHost,
   }
 }
 
-export function observable(target: any, key: PropertyKey) {
-  const base = Object.getOwnPropertyDescriptor(target, key);
-  const descriptor: PropertyDescriptor = { ...(base || DEFAULT) };
-  if (descriptor.configurable) {
-    if (!base ||
-      base.get || Object.prototype.hasOwnProperty.call(base, 'value')) {
-      descriptor.get = function (this: ObservableHost) {
-        getState(this).dependencies.depend(key);
-        return getValue(this, base, key);
-      };
+export function Observable(): PropertyDecorator {
+  return (target: any, key: PropertyKey) => {
+    const base = Object.getOwnPropertyDescriptor(target, key);
+    const descriptor: PropertyDescriptor = { ...(base || DEFAULT) };
+    if (descriptor.configurable) {
+      if (!base ||
+        base.get || Object.prototype.hasOwnProperty.call(base, 'value')) {
+        descriptor.get = function (this: ObservableHost) {
+          getState(this).dependencies.depend(key);
+          return getValue(this, base, key);
+        };
+      }
+      if (!base || base.set || base.writable) {
+        descriptor.set = function (this: ObservableHost, value: any) {
+          const current = getValue(this, base, key);
+          if (current !== value) {
+            setValue(this, base, key, value);
+            getState(this).dependencies.changed(key);
+          }
+        };
+      }
+      if (descriptor.get || descriptor.set) {
+        delete descriptor.value;
+        delete descriptor.writable;
+      }
+      Object.defineProperty(target, key, descriptor);
     }
-    if (!base || base.set || base.writable) {
-      descriptor.set = function (this: ObservableHost, value: any) {
-        const current = getValue(this, base, key);
-        if (current !== value) {
-          setValue(this, base, key, value);
-          getState(this).dependencies.changed(key);
-        }
-      };
-    }
-    if (descriptor.get || descriptor.set) {
-      delete descriptor.value;
-      delete descriptor.writable;
-    }
-    Object.defineProperty(target, key, descriptor);
-  }
+  };
 }

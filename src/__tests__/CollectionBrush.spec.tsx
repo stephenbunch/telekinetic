@@ -1,8 +1,7 @@
 import { Collection } from '../Collection';
 import { CollectionBrush } from '../CollectionBrush';
-import { Computed } from '../Computed';
 import { mount } from 'enzyme';
-import { observable } from '../observable';
+import { Observable } from '../Observable';
 import { Observer } from '../Observer';
 import * as React from 'react';
 
@@ -16,11 +15,11 @@ class TestComponent extends React.Component {
 
   count = 0;
 
-  @observable
+  @Observable()
   getSortKey: ((item: Item) => string) | undefined
     = (item: Item) => item.message;
 
-  @observable
+  @Observable()
   renderItem = (item: Item) => {
     item.count += 1;
     return <li>{item.message}</li>
