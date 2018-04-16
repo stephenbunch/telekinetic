@@ -12,8 +12,6 @@ class TestBrush extends CollectionBrush<number, Item, string> { }
 
 @observer
 class TestComponent extends React.Component {
-  name = 'testComponent';
-
   data = new Store<number, Item>();
 
   count = 0;
