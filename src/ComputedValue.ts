@@ -43,7 +43,7 @@ export class ComputedValue<T> implements Input<T> {
       const value = transaction(() => this.producer());
       Logger.current.trace(() => [
         `Tracked dependencies for ${this.name}:`,
-        context.getTrackedDependencies().map(x => x.name),
+        context.getTrackedDependencies().map((dep) => dep.name),
       ]);
       if (firstRun) {
         firstRun = false;
