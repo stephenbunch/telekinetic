@@ -1,0 +1,24 @@
+import { Observer, NextObserver, ErrorObserver } from 'rxjs/Observer';
+import { bound } from '../../internal/bound';
+import { Deferred } from './Deferred';
+
+export class AsyncObserver<T = undefined>
+  implements NextObserver<T>, ErrorObserver<T> {
+  private def = new Deferred<T>();
+
+  get promise(): Promise<T> {
+    return this.def.promise;
+  }
+
+  @bound
+  next(value: T) {
+    this.def.resolve(value);
+    this.def = new Deferred<T>();
+  }
+
+  @bound
+  error(error: Error) {
+    this.def.reject(error);
+    this.def = new Deferred<T>();
+  }
+}

@@ -1,7 +1,9 @@
 import { autorun } from '../autorun';
 import { observe, observeAsync } from '../observe';
 import { Dependency, CircularDependencyError } from '../Dependency';
-import { mockPromise, MockPromise, sleep, AsyncObserver } from './utils';
+import { Deferred } from './utils/Deferred';
+import { sleep } from './utils/sleep';
+import { AsyncObserver } from './utils/AsyncObserver';
 
 it('should run again when a dependency changes', () => {
   const dep = new Dependency('dep');
@@ -93,8 +95,8 @@ it('should support async computations', async () => {
   const dep2 = new Dependency('dep2');
   let countA = 0;
   let countB = 0;
-  let promiseA = mockPromise<number>();
-  let promiseB = mockPromise<number>();
+  let defA = new Deferred<number>();
+  let defB = new Deferred<number>();
   const auto = autorun('main', async (ctx) => {
     dep1.depend();
     await new Promise(resolve => setImmediate(resolve));
@@ -102,18 +104,18 @@ it('should support async computations', async () => {
       dep2.depend();
       await new Promise(resolve => setImmediate(resolve));
       countB += 1;
-      promiseB.resolve(countB);
-      promiseB = mockPromise<number>();
+      defB.resolve(countB);
+      defB = new Deferred<number>();
     });
     countA += 1;
-    promiseA.resolve(countA);
-    promiseA = mockPromise<number>();
+    defA.resolve(countA);
+    defA = new Deferred<number>();
   });
-  expect(await Promise.all([promiseA, promiseB])).toEqual([1, 1]);
+  expect(await Promise.all([defA.promise, defB.promise])).toEqual([1, 1]);
   dep2.changed();
-  expect(await promiseB).toBe(2);
+  expect(await defB.promise).toBe(2);
   dep1.changed();
-  expect(await Promise.all([promiseA, promiseB])).toEqual([2, 3]);
+  expect(await Promise.all([defA.promise, defB.promise])).toEqual([2, 3]);
   auto.dispose();
 });
 
@@ -220,7 +222,7 @@ it('should throw an error when a circular dependency is detected between ' +
   'multiple segments of the same async autorun', async () => {
     const dep = new Dependency('dep');
     let count = 0;
-    const def = mockPromise();
+    const def = new Deferred();
     const onError = jest.fn();
     const sub = observeAsync('main', async (ctx) => {
       try {
@@ -235,7 +237,7 @@ it('should throw an error when a circular dependency is detected between ' +
       }
     }).subscribe(undefined, onError);
 
-    await def;
+    await def.promise;
     expect(onError).toHaveBeenCalledWith(expect.any(CircularDependencyError));
     expect(count).toBe(1);
     sub.unsubscribe();

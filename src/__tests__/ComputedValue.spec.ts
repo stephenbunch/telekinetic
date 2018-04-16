@@ -1,4 +1,4 @@
-import { AsyncObserver } from './utils';
+import { AsyncObserver } from './utils/AsyncObserver';
 import { transaction } from '../transaction';
 import { ComputedValue } from '../ComputedValue';
 import { observe, observeAsync } from '../observe';

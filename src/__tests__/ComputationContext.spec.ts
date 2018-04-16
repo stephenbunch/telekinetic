@@ -1,7 +1,7 @@
 import { Dependency } from '../Dependency';
 import { DisposedError } from '../Disposable';
 import { observe, observeAsync } from '../observe';
-import { AsyncObserver } from './utils';
+import { AsyncObserver } from './utils/AsyncObserver';
 
 describe('fork', () => {
   it('should not run if the parent has been disposed', () => {
