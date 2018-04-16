@@ -1,8 +1,8 @@
-import { AsyncObserver } from './internal/testing';
-import { transaction } from './transaction';
-import { ComputedValue } from './ComputedValue';
-import { observe, observeAsync } from './observe';
-import { Value } from './Value';
+import { AsyncObserver } from './utils';
+import { transaction } from '../transaction';
+import { ComputedValue } from '../ComputedValue';
+import { observe, observeAsync } from '../observe';
+import { Value } from '../Value';
 
 it('should cache computed values', () => {
   const val1 = new Value('val1', 'foo');

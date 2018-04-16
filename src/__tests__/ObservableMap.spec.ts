@@ -1,5 +1,5 @@
-import { observe } from './observe';
-import { ObservableMap } from './ObservableMap';
+import { observe } from '../observe';
+import { ObservableMap } from '../ObservableMap';
 
 describe('ObservableMap', () => {
   it('should track a dependency when getting the size', () => {

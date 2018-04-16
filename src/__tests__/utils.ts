@@ -1,5 +1,5 @@
 import { Observer, NextObserver, ErrorObserver } from 'rxjs/Observer';
-import { bound } from './bound';
+import { bound } from '../internal/bound';
 
 export interface MockPromise<T> extends Promise<T> {
   resolve(result?: T): void;

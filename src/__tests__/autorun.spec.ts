@@ -1,7 +1,7 @@
-import { autorun } from './autorun';
-import { observe, observeAsync } from './observe';
-import { Dependency, CircularDependencyError } from './Dependency';
-import { mockPromise, MockPromise, sleep, AsyncObserver } from './testing';
+import { autorun } from '../autorun';
+import { observe, observeAsync } from '../observe';
+import { Dependency, CircularDependencyError } from '../Dependency';
+import { mockPromise, MockPromise, sleep, AsyncObserver } from './utils';
 
 it('should run again when a dependency changes', () => {
   const dep = new Dependency('dep');

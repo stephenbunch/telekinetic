@@ -1,9 +1,9 @@
-import { CollectionBrush } from './CollectionBrush';
-import { computed } from './computed';
+import { CollectionBrush } from '../CollectionBrush';
+import { computed } from '../computed';
 import { mount } from 'enzyme';
-import { observable } from './observable';
-import { observer } from './observer';
-import { Store } from './Store';
+import { observable } from '../observable';
+import { observer } from '../observer';
+import { Store } from '../Store';
 import * as React from 'react';
 
 interface Item { message: string, count: number }

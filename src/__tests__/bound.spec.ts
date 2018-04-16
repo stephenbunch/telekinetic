@@ -1,4 +1,4 @@
-import { bound } from './bound';
+import { bound } from '../internal/bound';
 
 describe('@bound', () => {
   it('should bind methods to the self', () => {

@@ -1,5 +1,5 @@
-import { observe } from './observe';
-import { observable } from './observable';
+import { observe } from '../observe';
+import { observable } from '../observable';
 
 describe('@observable', () => {
   it('should setup dependency tracking on class members', () => {

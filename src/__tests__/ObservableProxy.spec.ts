@@ -1,5 +1,5 @@
-import { observe } from './observe';
-import { ObservableProxy } from './ObservableProxy';
+import { observe } from '../observe';
+import { ObservableProxy } from '../ObservableProxy';
 
 describe('ObservableProxy', () => {
   it('should setup dependencies', () => {

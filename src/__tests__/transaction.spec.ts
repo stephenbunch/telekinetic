@@ -1,6 +1,6 @@
-import { autorun } from './autorun';
-import { transaction, transactionAsync } from './transaction';
-import { Dependency } from './Dependency';
+import { autorun } from '../autorun';
+import { transaction, transactionAsync } from '../transaction';
+import { Dependency } from '../Dependency';
 
 describe('batch', () => {
   it('should suspend reruns', () => {

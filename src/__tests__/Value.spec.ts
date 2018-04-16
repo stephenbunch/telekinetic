@@ -1,5 +1,5 @@
-import { observe } from './observe';
-import { Value } from './Value';
+import { observe } from '../observe';
+import { Value } from '../Value';
 
 it('should register a dependency', () => {
   const val = new Value('val', 1);

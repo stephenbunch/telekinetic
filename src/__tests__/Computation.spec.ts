@@ -1,6 +1,6 @@
-import { Dependency } from './Dependency';
-import { observe } from './observe';
-import { untracked } from './Computation';
+import { Dependency } from '../Dependency';
+import { observe } from '../observe';
+import { untracked } from '../Computation';
 
 describe('untracked', () => {
   it('should run the callback outside of any autorun', () => {
