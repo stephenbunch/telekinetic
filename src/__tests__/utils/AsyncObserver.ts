@@ -2,7 +2,7 @@ import { Observer, NextObserver, ErrorObserver } from 'rxjs/Observer';
 import { Bound } from '../../internal/Bound';
 import { Deferred } from './Deferred';
 
-export class AsyncObserver<T = undefined>
+export class AsyncObserver<T = void>
   implements NextObserver<T>, ErrorObserver<T> {
   private def = new Deferred<T>();
 

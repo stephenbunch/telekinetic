@@ -6,6 +6,7 @@ import {
 import { DisposedError } from './Disposable';
 import { FrozenSet } from './internal/FrozenSet';
 import { Logger } from './Logger';
+import { Name } from './Name';
 import { OrderedSet } from './internal/OrderedSet';
 import { transaction, enqueue } from './transaction';
 
@@ -19,13 +20,13 @@ export class ComputationError extends Error { }
 export class ReentrancyError extends Error { }
 
 export interface Computation extends Autorun {
-  readonly name: string;
+  readonly name: Name;
   readonly isAlive: boolean;
   readonly context: ComputationContextClass | null;
   readonly parentContext: ComputationContextClass | null;
   continue<R>(callback: () => R): R;
-  spawn<R>(name: string, runFunc: RunFunction<R>): Computation;
-  spawnAsync<R>(name: string,
+  spawn<R>(name: Name, runFunc: RunFunction<R>): Computation;
+  spawnAsync<R>(name: Name,
     runFunc: RunFunction<Promise<R>>): Promise<Computation>;
   rerun(): void;
   dispose(): void;
@@ -52,11 +53,11 @@ export class ComputationClass<T> implements Computation {
   private disposed = false;
   private children: Computation[] = [];
 
-  readonly name: string;
+  readonly name: Name;
   context: ComputationContextClass | null = null;
   parentContext: ComputationContextClass | null;
 
-  constructor(name: string, runFunc: RunFunction<T>,
+  constructor(name: Name, runFunc: RunFunction<T>,
     parentContext: ComputationContextClass | null = null) {
     this.name = name;
     this.func = runFunc;
@@ -121,14 +122,14 @@ export class ComputationClass<T> implements Computation {
     }
   }
 
-  spawn<R>(name: string, runFunc: RunFunction<R>): ComputationClass<R> {
+  spawn<R>(name: Name, runFunc: RunFunction<R>): ComputationClass<R> {
     const comp = new ComputationClass(name, runFunc);
     this.children.push(comp);
     comp.run();
     return comp;
   }
 
-  async spawnAsync<R>(name: string,
+  async spawnAsync<R>(name: Name,
     runFunc: RunFunction<Promise<R>>): Promise<ComputationClass<Promise<R>>> {
     const comp = new ComputationClass(name, runFunc);
     this.children.push(comp);

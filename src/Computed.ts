@@ -1,4 +1,5 @@
 import { ComputedValue } from './ComputedValue';
+import { Name } from './Name';
 
 const valuesByInstance = new WeakMap<any, Map<PropertyKey, ComputedValue<any>>>();
 
@@ -12,7 +13,7 @@ export function Computed(): MethodDecorator {
       }
       const valuesByKey = valuesByInstance.get(this)!;
       if (!valuesByKey.has(key)) {
-        const name = `${this.constructor.name}.${key}`;
+        const name = new Name([this.constructor.name, key.toString()]);
         valuesByKey.set(key, new ComputedValue(name, get!.bind(this)));
       }
       return valuesByKey.get(key)!.get();

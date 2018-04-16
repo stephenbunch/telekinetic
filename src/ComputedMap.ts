@@ -1,20 +1,21 @@
-import { transaction } from './transaction';
-import { Dependency } from './Dependency';
 import { ComputedValue } from './ComputedValue';
+import { Dependency } from './Dependency';
+import { Name } from './Name';
 import { ObservableMap } from './ObservableMap';
+import { transaction } from './transaction';
 import { untracked } from './Computation';
 
 export class ComputedMap<TKey, TInput, TOutput> {
-  readonly name: string;
+  readonly name: Name;
 
   private inputs: ObservableMap<TKey, TInput>;
   private outputs: Map<TKey, ComputedValue<TOutput | undefined>>;
   private transform: (key: TKey, input: TInput) => TOutput;
 
-  constructor(name: string, transform: (key: TKey, input: TInput) => TOutput,
+  constructor(name: Name, transform: (key: TKey, input: TInput) => TOutput,
     initialInputs?: ReadonlyArray<[TKey, TInput]>) {
     this.name = name;
-    this.inputs = new ObservableMap(`${this.name}.inputs`, initialInputs);
+    this.inputs = new ObservableMap(this.name.add('inputs'), initialInputs);
     this.transform = transform;
     this.outputs = new Map();
 
@@ -33,7 +34,8 @@ export class ComputedMap<TKey, TInput, TOutput> {
   }
 
   private createOutputForKey(key: TKey) {
-    this.outputs.set(key, new ComputedValue(`${this.name}.outputs.${key}`, () => {
+    const name = this.name.add('outputs').add(key.toString());
+    this.outputs.set(key, new ComputedValue(name, () => {
       const hasKey = untracked(() => this.inputs.has(key));
       if (hasKey) {
         return this.transform(key, this.inputs.get(key)!);

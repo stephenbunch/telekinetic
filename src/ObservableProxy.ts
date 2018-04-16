@@ -1,9 +1,10 @@
 import { KeyedDependency } from './internal/KeyedDependency';
+import { Name } from './Name';
 
 class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
   private dependencies: KeyedDependency;
 
-  constructor(name: string) {
+  constructor(name: Name) {
     this.dependencies = new KeyedDependency(name);
   }
 
@@ -30,7 +31,7 @@ export class ObservableProxy {
    * is not used. To convert back to the original object, use toObject.
    * @param {T} target The object from which to create the proxy.
    */
-  static wrap<T extends KeyedObject>(name: string, target: T): T {
+  static wrap<T extends KeyedObject>(name: Name, target: T): T {
     return new Proxy(target, new ObservableProxyHandler<T>(name));
   }
 

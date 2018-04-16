@@ -1,10 +1,11 @@
 import { Dependency } from './Dependency';
+import { Name } from './Name';
 
 export class ObservableSet<T> implements Set<T> {
   private set: Set<T>;
   private dependency: Dependency;
 
-  constructor(name: string, values?: Iterable<T>) {
+  constructor(name: Name, values?: Iterable<T>) {
     this.dependency = new Dependency(name);
     if (values) {
       this.set = new Set(values);
@@ -69,7 +70,8 @@ export class ObservableSet<T> implements Set<T> {
     return this.set.values();
   }
 
-  forEach(callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any) {
+  forEach(
+    callbackfn: (value: T, value2: T, set: Set<T>) => void, thisArg?: any) {
     this.dependency.depend();
     this.set.forEach(callbackfn);
   }

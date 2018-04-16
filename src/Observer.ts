@@ -1,4 +1,5 @@
 import { Autorun, autorun } from './autorun';
+import { Name } from './Name';
 import { ObservableProxy } from './ObservableProxy';
 import { transaction } from './transaction';
 import { untracked } from './Computation';
@@ -32,9 +33,9 @@ interface ReactComponentClass {
   new(): ReactComponent;
 }
 
-export function Observer(name?: string): ClassDecorator {
+export function Observer(): ClassDecorator {
   return <T extends Function>(constructor: T): T => {
-    const name = constructor.name;
+    const name = Name.of(constructor.name);
     class type extends (constructor as any as ReactComponentClass) {
       get props() {
         return getState(this).props;
@@ -66,11 +67,12 @@ export function Observer(name?: string): ClassDecorator {
         const state = getState(this);
         state.rendering = true;
         if (!state.proxified) {
-          state.props = ObservableProxy.wrap(`${name}.props`, { ...state.props });
+          state.props = ObservableProxy.wrap(
+            name.add('props'), { ...state.props });
           state.proxified = true;
         }
         if (!state.autorun) {
-          state.autorun = autorun(`${name}.render`, () => {
+          state.autorun = autorun(name.add('render'), () => {
             const result = super.render!();
             if (result !== state.result) {
               state.result = result;

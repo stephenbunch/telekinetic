@@ -1,22 +1,23 @@
+import { Bound } from './internal/Bound';
 import { ComputationContextClass } from './ComputationContext';
+import { enqueue } from './transaction';
+import { Event, EventController } from './Event';
 import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
+import { Name } from './Name';
 import { OrderedSet } from './internal/OrderedSet';
-import { Bound } from './internal/Bound';
-import { Event, EventController } from './Event';
-import { enqueue } from './transaction';
 
 export class CircularDependencyError extends Error { }
 
 export class Dependency {
-  readonly name: string;
+  readonly name: Name;
 
   private contexts = new OrderedSet<ComputationContextClass>();
   private readonly onHotEvent = new EventController();
   private readonly onColdEvent = new EventController();
   private isHot = false;
 
-  constructor(name: string) {
+  constructor(name: Name) {
     this.name = name;
   }
 

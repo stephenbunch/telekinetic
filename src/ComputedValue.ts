@@ -3,6 +3,7 @@ import { Bound } from './internal/Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Logger } from './Logger';
+import { Name } from './Name';
 import { transaction } from './transaction';
 
 function dispose(value: any) {
@@ -12,7 +13,7 @@ function dispose(value: any) {
 }
 
 export class ComputedValue<T> implements Input<T> {
-  readonly name: string;
+  readonly name: Name;
 
   private readonly producer: () => T;
   private readonly dependency: Dependency;
@@ -20,7 +21,7 @@ export class ComputedValue<T> implements Input<T> {
   private autorun: Autorun | undefined;
   private value: T | undefined;
 
-  constructor(name: string, producer: () => T) {
+  constructor(name: Name, producer: () => T) {
     this.name = name;
     this.producer = producer;
     this.dependency = new Dependency(name);
@@ -43,7 +44,7 @@ export class ComputedValue<T> implements Input<T> {
       const value = transaction(() => this.producer());
       Logger.current.trace(() => [
         `Tracked dependencies for ${this.name}:`,
-        context.getTrackedDependencies().map((dep) => dep.name),
+        context.getTrackedDependencies().map((dep) => dep.name.toString()),
       ]);
       if (firstRun) {
         firstRun = false;

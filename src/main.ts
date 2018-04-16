@@ -18,6 +18,7 @@ export * from './Disposable';
 export * from './Event';
 export * from './Input';
 export * from './Logger';
+export * from './Name';
 export * from './Observable';
 export * from './ObservableMap';
 export * from './ObservableProxy';

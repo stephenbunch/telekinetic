@@ -3,6 +3,7 @@ import { Collection } from './Collection';
 import { CollectionObserver } from './CollectionObserver';
 import { Computed } from './Computed';
 import { ComputedMap } from './ComputedMap';
+import { Name } from './Name';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
 import { Observer } from './Observer';
@@ -21,6 +22,8 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 
+  private readonly name = Name.of(this.constructor.name);
+
   @Computed()
   private get observer(): CollectionObserver<TKey, TItem> {
     return new CollectionObserver(this.props.data, this);
@@ -32,7 +35,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   @Computed()
   private get keys(): ObservableSet<TKey> {
     return new ObservableSet(
-      `${this.constructor.name}.keys`, this.observer.collection.keys());
+      this.name.add('keys'), this.observer.collection.keys());
   }
 
   /**
@@ -42,7 +45,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   private get sortKeys(): ComputedMap<TKey, TItem, TSortKey> | null {
     if (this.props.sort) {
       return new ComputedMap<TKey, TItem, TSortKey>(
-        `${this.constructor.name}.sortKeys`,
+        this.name.add('sortKeys'),
         this.getSortKeySelector(this.props.sort),
         Array.from(this.observer.collection)
       );
@@ -53,7 +56,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   @Computed()
   private get renderedItems(): ComputedMap<TKey, TItem, React.ReactNode> {
     return new ComputedMap<TKey, TItem, React.ReactNode>(
-      `${this.constructor.name}.renderedEntries`,
+      this.name.add('renderedItems'),
       this.getItemRenderer(this.props.render),
       Array.from(this.observer.collection)
     );

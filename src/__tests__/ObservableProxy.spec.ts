@@ -1,11 +1,12 @@
-import { observe } from '../observe';
+import { Name } from '../Name';
 import { ObservableProxy } from '../ObservableProxy';
+import { observe } from '../observe';
 
 describe('ObservableProxy', () => {
   it('should setup dependencies', () => {
-    const obj = ObservableProxy.wrap('obj', { foo: 1 });
+    const obj = ObservableProxy.wrap(Name.of('obj'), { foo: 1 });
     let result = 0;
-    const sub = observe('main', () => {
+    const sub = observe(Name.of('main'), () => {
       result = obj.foo;
     }).subscribe();
     expect(result).toBe(1);
@@ -15,9 +16,10 @@ describe('ObservableProxy', () => {
   });
 
   it('should work with unknown properties', () => {
-    const obj: { [index: string]: any } = ObservableProxy.wrap('obj', {});
+    const obj: { [index: string]: any } =
+      ObservableProxy.wrap(Name.of('obj'), {});
     let result = 0;
-    const sub = observe('main', () => {
+    const sub = observe(Name.of('main'), () => {
       result = obj.foo;
     }).subscribe();
     expect(result).toBe(undefined);

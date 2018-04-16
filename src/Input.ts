@@ -1,4 +1,6 @@
+import { Name } from './Name';
+
 export interface Input<T> {
-  readonly name: string;
+  readonly name: Name;
   get(): T;
 }

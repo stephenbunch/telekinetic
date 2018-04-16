@@ -1,8 +1,9 @@
 import { autorun } from './autorun';
+import { Name } from './Name';
 import { Observable } from 'rxjs/Observable';
 import { RunFunction } from './Computation';
 
-export function observe<T>(name: string,
+export function observe<T>(name: Name,
   runFunc: RunFunction<T>): Observable<T> {
   return new Observable<T>((observer) => {
     const auto = autorun(name, (ctx) => {
@@ -18,7 +19,7 @@ export function observe<T>(name: string,
   });
 }
 
-export function observeAsync<T>(name: string,
+export function observeAsync<T>(name: Name,
   runFunc: RunFunction<Promise<T>>): Observable<T> {
   return new Observable<T>((observer) => {
     const auto = autorun(name, async (ctx) => {

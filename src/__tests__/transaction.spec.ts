@@ -1,13 +1,14 @@
 import { autorun } from '../autorun';
-import { transaction, transactionAsync } from '../transaction';
 import { Dependency } from '../Dependency';
+import { Name } from '../Name';
+import { transaction, transactionAsync } from '../transaction';
 
 describe('batch', () => {
   it('should suspend reruns', () => {
-    const dep1 = new Dependency('dep1');
-    const dep2 = new Dependency('dep2');
+    const dep1 = new Dependency(Name.of('dep1'));
+    const dep2 = new Dependency(Name.of('dep2'));
     let called = 0;
-    const auto = autorun('main', () => {
+    const auto = autorun(Name.of('main'), () => {
       dep1.depend();
       dep2.depend();
       called += 1;
@@ -34,10 +35,10 @@ describe('batch', () => {
 
 describe('batchAsync', () => {
   it('should suspend reruns', async () => {
-    const dep1 = new Dependency('dep1');
-    const dep2 = new Dependency('dep2');
+    const dep1 = new Dependency(Name.of('dep1'));
+    const dep2 = new Dependency(Name.of('dep2'));
     let called = 0;
-    const auto = autorun('main', () => {
+    const auto = autorun(Name.of('main'), () => {
       dep1.depend();
       dep2.depend();
       called += 1;
@@ -63,9 +64,9 @@ describe('batchAsync', () => {
   });
 
   it('should resume on error', async () => {
-    const dep = new Dependency('dep');
+    const dep = new Dependency(Name.of('dep'));
     let called = 0;
-    const auto = autorun('main', () => {
+    const auto = autorun(Name.of('main'), () => {
       dep.depend();
       called += 1;
     });

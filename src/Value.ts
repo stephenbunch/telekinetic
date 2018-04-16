@@ -1,10 +1,11 @@
+import { Bound } from './internal/Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
+import { Name } from './Name';
 import { Store } from './Store';
-import { Bound } from './internal/Bound';
 
 export class Value<T> implements Input<T> {
-  readonly name: string;
+  readonly name: Name;
 
   private readonly dependency: Dependency;
   private value: T;
@@ -12,7 +13,7 @@ export class Value<T> implements Input<T> {
 
   static store: Store | undefined;
 
-  constructor(name: string, initialValue: T) {
+  constructor(name: Name, initialValue: T) {
     this.name = name;
     this.value = initialValue;
     this.dependency = new Dependency(name);

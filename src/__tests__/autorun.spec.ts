@@ -1,14 +1,15 @@
-import { autorun } from '../autorun';
-import { observe, observeAsync } from '../observe';
-import { Dependency, CircularDependencyError } from '../Dependency';
-import { Deferred } from './utils/Deferred';
-import { sleep } from './utils/sleep';
 import { AsyncObserver } from './utils/AsyncObserver';
+import { autorun } from '../autorun';
+import { Deferred } from './utils/Deferred';
+import { Dependency, CircularDependencyError } from '../Dependency';
+import { Name } from '../Name';
+import { observe, observeAsync } from '../observe';
+import { sleep } from './utils/sleep';
 
 it('should run again when a dependency changes', () => {
-  const dep = new Dependency('dep');
+  const dep = new Dependency(Name.of('dep'));
   let count = 0;
-  const auto = autorun('main', () => {
+  const auto = autorun(Name.of('main'), () => {
     dep.depend();
     count += 1;
   });
@@ -19,10 +20,10 @@ it('should run again when a dependency changes', () => {
 });
 
 it('should disconnect from previous dependencies on each new run', () => {
-  const dep1 = new Dependency('dep1');
-  const dep2 = new Dependency('dep2');
+  const dep1 = new Dependency(Name.of('dep1'));
+  const dep2 = new Dependency(Name.of('dep2'));
   let count = 0;
-  const auto = autorun('main', () => {
+  const auto = autorun(Name.of('main'), () => {
     if (count === 0) {
       dep1.depend();
     } else {
@@ -40,17 +41,17 @@ it('should disconnect from previous dependencies on each new run', () => {
 });
 
 it('should support nested computations', () => {
-  const dep1 = new Dependency('dep1');
-  const dep2 = new Dependency('dep2');
-  const dep3 = new Dependency('dep3');
+  const dep1 = new Dependency(Name.of('dep1'));
+  const dep2 = new Dependency(Name.of('dep2'));
+  const dep3 = new Dependency(Name.of('dep3'));
   let countA = 0;
   let countB = 0;
   let countC = 0;
-  const auto = autorun('main', (ctx) => {
+  const auto = autorun(Name.of('main'), (ctx) => {
     dep1.depend();
-    ctx.fork('main.sub', (ctx) => {
+    ctx.fork(Name.of('sub'), (ctx) => {
       dep2.depend();
-      ctx.fork('main.sub.sub', () => {
+      ctx.fork(Name.of('sub'), () => {
         dep3.depend();
         countC += 1;
       });
@@ -78,9 +79,9 @@ it('should support nested computations', () => {
 });
 
 it('should not rerun when disposed', () => {
-  const dep = new Dependency('dep');
+  const dep = new Dependency(Name.of('dep'));
   let count = 0;
-  const auto = autorun('main', () => {
+  const auto = autorun(Name.of('main'), () => {
     dep.depend();
     count += 1;
   });
@@ -91,16 +92,16 @@ it('should not rerun when disposed', () => {
 });
 
 it('should support async computations', async () => {
-  const dep1 = new Dependency('dep1');
-  const dep2 = new Dependency('dep2');
+  const dep1 = new Dependency(Name.of('dep1'));
+  const dep2 = new Dependency(Name.of('dep2'));
   let countA = 0;
   let countB = 0;
   let defA = new Deferred<number>();
   let defB = new Deferred<number>();
-  const auto = autorun('main', async (ctx) => {
+  const auto = autorun(Name.of('main'), async (ctx) => {
     dep1.depend();
     await new Promise(resolve => setImmediate(resolve));
-    await ctx.fork('sub', async () => {
+    await ctx.fork(Name.of('sub'), async () => {
       dep2.depend();
       await new Promise(resolve => setImmediate(resolve));
       countB += 1;
@@ -120,9 +121,9 @@ it('should support async computations', async () => {
 });
 
 it('should throw an error if a circular dependency is detected', () => {
-  const dep = new Dependency('dep');
+  const dep = new Dependency(Name.of('dep'));
   const onError = jest.fn();
-  const sub = observe('main', () => {
+  const sub = observe(Name.of('main'), () => {
     dep.depend();
     dep.changed();
   }).subscribe(undefined, onError);
@@ -131,28 +132,28 @@ it('should throw an error if a circular dependency is detected', () => {
 
 it('should throw an error when a circular dependency is detected between ' +
   'autoruns', () => {
-    const dep1 = new Dependency('dep1');
-    const dep2 = new Dependency('dep2');
-    const dep3 = new Dependency('dep3');
+    const dep1 = new Dependency(Name.of('dep1'));
+    const dep2 = new Dependency(Name.of('dep2'));
+    const dep3 = new Dependency(Name.of('dep3'));
 
     let count1 = 0;
     let count2 = 0;
     let count3 = 0;
 
-    const auto1 = autorun('main', () => {
+    const auto1 = autorun(Name.of('main'), () => {
       count1 += 1;
       dep1.depend();
       dep2.changed();
     });
 
-    const auto2 = autorun('main', () => {
+    const auto2 = autorun(Name.of('main'), () => {
       count2 += 1;
       dep2.depend();
       dep3.changed();
     });
 
     const onError = jest.fn();
-    const sub3 = observe('main', () => {
+    const sub3 = observe(Name.of('main'), () => {
       count3 += 1;
       dep3.depend();
       dep1.changed();
@@ -170,8 +171,8 @@ it('should throw an error when a circular dependency is detected between ' +
 
 it('should throw an error when a circular dependency is detected between ' +
   'async autoruns', async () => {
-    const dep1 = new Dependency('dep1');
-    const dep2 = new Dependency('dep2');
+    const dep1 = new Dependency(Name.of('dep1'));
+    const dep2 = new Dependency(Name.of('dep2'));
 
     const obs1 = new AsyncObserver<number>();
     const obs2 = new AsyncObserver<number>();
@@ -183,7 +184,7 @@ it('should throw an error when a circular dependency is detected between ' +
     // 2. run auto2 -> dep1 changed -> run auto1 -> dep2 changed -> run auto2
     //        -> dep1 changed -> error!
 
-    const sub1 = observeAsync('auto1', async (ctx) => {
+    const sub1 = observeAsync(Name.of('auto1'), async (ctx) => {
       dep1.depend();
       await sleep();
       ctx.continue(() => {
@@ -193,7 +194,7 @@ it('should throw an error when a circular dependency is detected between ' +
     }).subscribe(obs1);
     expect(await obs1.promise).toBe(1);
 
-    const sub2 = observeAsync('auto2', async (ctx) => {
+    const sub2 = observeAsync(Name.of('auto2'), async (ctx) => {
       dep2.depend();
       await sleep();
       ctx.continue(() => {
@@ -220,11 +221,11 @@ it('should throw an error when a circular dependency is detected between ' +
 
 it('should throw an error when a circular dependency is detected between ' +
   'multiple segments of the same async autorun', async () => {
-    const dep = new Dependency('dep');
+    const dep = new Dependency(Name.of('dep'));
     let count = 0;
     const def = new Deferred();
     const onError = jest.fn();
-    const sub = observeAsync('main', async (ctx) => {
+    const sub = observeAsync(Name.of('main'), async (ctx) => {
       try {
         count += 1;
         dep.depend();
@@ -245,19 +246,19 @@ it('should throw an error when a circular dependency is detected between ' +
 
 it('should throw an error when a circular dependency is detected between two ' +
   'forks', () => {
-    const dep1 = new Dependency('dep1');
-    const dep2 = new Dependency('dep2');
+    const dep1 = new Dependency(Name.of('dep1'));
+    const dep2 = new Dependency(Name.of('dep2'));
     let count1 = 0;
     let count2 = 0;
     const onError = jest.fn();
-    const sub = observe('main', (ctx) => {
-      ctx.fork('sub1', () => {
+    const sub = observe(Name.of('main'), (ctx) => {
+      ctx.fork(Name.of('sub1'), () => {
         count1 += 1;
         dep1.depend();
         dep2.changed();
       });
 
-      ctx.fork('sub2', () => {
+      ctx.fork(Name.of('sub2'), () => {
         count2 += 1;
         dep2.depend();
         dep1.changed();
@@ -278,17 +279,17 @@ it('should not throw a circular dependency error between two sibling graphs',
     // 3. change nodes -> change result
     // 4. change nodes -> change result -> no error
 
-    const nodes = new Dependency('nodes');
-    const result = new Dependency('results');
+    const nodes = new Dependency(Name.of('nodes'));
+    const result = new Dependency(Name.of('results'));
     let count1 = 0;
     let count2 = 0;
-    const auto = autorun('main', (ctx) => {
-      ctx.fork('sub1', () => {
+    const auto = autorun(Name.of('main'), (ctx) => {
+      ctx.fork(Name.of('sub1'), () => {
         count1 += 1;
         nodes.depend();
         result.changed();
       });
-      ctx.fork('sub2', () => {
+      ctx.fork(Name.of('sub2'), () => {
         count2 += 1;
         result.depend();
       });

@@ -1,6 +1,7 @@
-import { transaction } from './transaction';
 import { Dependency } from './Dependency';
 import { KeyedDependency } from './internal/KeyedDependency';
+import { Name } from './Name';
+import { transaction } from './transaction';
 
 export class ObservableMap<K, V> implements Map<K, V> {
   private map: Map<K, V>;
@@ -8,7 +9,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
   private valuesDependency: Dependency;
   private dependencies: KeyedDependency;
 
-  static fromJS<K, V>(name: string, map: Map<K, V>): ObservableMap<K, V> {
+  static fromJS<K, V>(name: Name, map: Map<K, V>): ObservableMap<K, V> {
     return new ObservableMap<K, V>(name, Array.from(map.entries()));
   }
 
@@ -16,9 +17,9 @@ export class ObservableMap<K, V> implements Map<K, V> {
     return new Map(Array.from(map.entries()));
   }
 
-  constructor(name: string, entries?: ReadonlyArray<[K, V]>) {
-    this.keysDependency = new Dependency(`${name}.$$keys`);
-    this.valuesDependency = new Dependency(`${name}.$$values`);
+  constructor(name: Name, entries?: ReadonlyArray<[K, V]>) {
+    this.keysDependency = new Dependency(name.add('$$keys'));
+    this.valuesDependency = new Dependency(name.add('$$values'));
     this.dependencies = new KeyedDependency(name);
     this.map = new Map(entries);
   }
@@ -91,7 +92,8 @@ export class ObservableMap<K, V> implements Map<K, V> {
     return this.entries();
   }
 
-  forEach(callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any) {
+  forEach(
+    callbackfn: (value: V, key: K, map: Map<K, V>) => void, thisArg?: any) {
     this.keysDependency.depend();
     this.valuesDependency.depend();
     this.map.forEach(callbackfn);

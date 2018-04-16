@@ -1,7 +1,8 @@
 import { Computation, ComputationClass, RunFunction } from './Computation';
+import { Dependency } from './Dependency';
 import { Disposable, DisposedError } from './Disposable';
 import { FrozenSet } from './internal/FrozenSet';
-import { Dependency } from './Dependency';
+import { Name } from './Name';
 
 const DESTROYED = 'Computation context has been destroyed.';
 
@@ -11,7 +12,7 @@ export type ComputationContextClassEventListener =
 export interface ComputationContext {
   readonly isAlive: boolean;
   continue<T>(callback: () => T): T;
-  fork<T>(name: string, runFunc: RunFunction<T>): T;
+  fork<T>(name: Name, runFunc: RunFunction<T>): T;
   getTrackedDependencies(): Array<Dependency>;
 }
 
@@ -20,7 +21,7 @@ export class ComputationContextClass implements ComputationContext, Disposable {
     ComputationContextClassEventListener> | null;
   private disposed = false;
 
-  readonly name: string;
+  readonly name: Name;
   computation: Computation | null;
   parents: FrozenSet<Computation> | null;
   stack: FrozenSet<Computation> | null;
@@ -64,9 +65,9 @@ export class ComputationContextClass implements ComputationContext, Disposable {
     }
   }
 
-  fork<T>(name: string, runFunc: RunFunction<T>): T {
+  fork<T>(name: Name, runFunc: RunFunction<T>): T {
     if (this.isAlive) {
-      const fullName = `${this.computation!.name}.${name}`;
+      const fullName = this.computation!.name.join(name);
       const comp = new ComputationClass(fullName, runFunc, this);
       this.children!.push(comp);
       return comp.run();
