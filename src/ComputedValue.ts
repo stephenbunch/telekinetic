@@ -1,5 +1,5 @@
 import { autorun, Autorun } from './autorun';
-import { bound } from './bound';
+import { bound } from './internal/bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Logger } from './Logger';

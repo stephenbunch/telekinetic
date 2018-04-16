@@ -4,9 +4,9 @@ import {
   ComputationContextClass,
 } from './ComputationContext';
 import { DisposedError } from './Disposable';
-import { FrozenSet } from './FrozenSet';
+import { FrozenSet } from './internal/FrozenSet';
 import { Logger } from './Logger';
-import { OrderedSet } from './OrderedSet';
+import { OrderedSet } from './internal/OrderedSet';
 import { transaction, enqueue } from './transaction';
 
 let currentComputation: Computation | null = null;

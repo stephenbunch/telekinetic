@@ -1,4 +1,4 @@
-import { AsyncObserver } from './testing';
+import { AsyncObserver } from './internal/testing';
 import { transaction } from './transaction';
 import { ComputedValue } from './ComputedValue';
 import { observe, observeAsync } from './observe';

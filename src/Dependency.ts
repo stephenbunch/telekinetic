@@ -1,8 +1,8 @@
 import { ComputationContextClass } from './ComputationContext';
 import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
-import { OrderedSet } from './OrderedSet';
-import { bound } from './bound';
+import { OrderedSet } from './internal/OrderedSet';
+import { bound } from './internal/bound';
 import { Event, EventController } from './Event';
 import { enqueue } from './transaction';
 

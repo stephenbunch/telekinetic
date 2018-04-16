@@ -1,4 +1,4 @@
-import { KeyedDependency } from './KeyedDependency';
+import { KeyedDependency } from './internal/KeyedDependency';
 
 const STATE = Symbol('STATE');
 

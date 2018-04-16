@@ -1,4 +1,4 @@
-import { Dependency } from './Dependency';
+import { Dependency } from '../Dependency';
 
 export class KeyedDependency {
   private dependencies = new Map<any, Dependency>();

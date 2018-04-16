@@ -1,4 +1,4 @@
-import { OrderedSet } from './OrderedSet';
+import { OrderedSet } from './internal/OrderedSet';
 
 export type EventListener<T> = (eventArgs: T) => void;
 

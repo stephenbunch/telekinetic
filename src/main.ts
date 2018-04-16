@@ -1,6 +1,5 @@
 export * from './action';
 export * from './autorun';
-export * from './bound';
 export * from './CollectionBrush';
 export {
   ComputationError,
@@ -16,7 +15,6 @@ export * from './Dependency';
 export * from './Disposable';
 export * from './Event';
 export * from './Input';
-export * from './KeyedDependency';
 export * from './Logger';
 export * from './observable';
 export * from './ObservableMap';

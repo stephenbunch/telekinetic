@@ -1,4 +1,4 @@
-import { KeyedDependency } from './KeyedDependency';
+import { KeyedDependency } from './internal/KeyedDependency';
 
 class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
   private dependencies: KeyedDependency;

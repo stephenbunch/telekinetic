@@ -1,6 +1,6 @@
 import { Computation, ComputationClass, RunFunction } from './Computation';
 import { Disposable, DisposedError } from './Disposable';
-import { FrozenSet } from './FrozenSet';
+import { FrozenSet } from './internal/FrozenSet';
 import { Dependency } from './Dependency';
 
 const DESTROYED = 'Computation context has been destroyed.';

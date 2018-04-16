@@ -1,6 +1,6 @@
 import { transaction } from './transaction';
 import { Dependency } from './Dependency';
-import { KeyedDependency } from './KeyedDependency';
+import { KeyedDependency } from './internal/KeyedDependency';
 
 export class ObservableMap<K, V> implements Map<K, V> {
   private map: Map<K, V>;
