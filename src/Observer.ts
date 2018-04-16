@@ -32,62 +32,64 @@ interface ReactComponentClass {
   new(): ReactComponent;
 }
 
-export function Observer<T extends Function>(constructor: T): T {
-  const name = constructor.name;
-  class type extends (constructor as any as ReactComponentClass) {
-    get props() {
-      return getState(this).props;
-    }
+export function Observer(name?: string): ClassDecorator {
+  return <T extends Function>(constructor: T): T => {
+    const name = constructor.name;
+    class type extends (constructor as any as ReactComponentClass) {
+      get props() {
+        return getState(this).props;
+      }
 
-    set props(value) {
-      const state = getState(this);
-      if (!state.proxified || state.props === undefined) {
-        state.props = value;
-      } else {
-        transaction(() => Object.assign(state.props, value));
+      set props(value) {
+        const state = getState(this);
+        if (!state.proxified || state.props === undefined) {
+          state.props = value;
+        } else {
+          transaction(() => Object.assign(state.props, value));
+        }
       }
-    }
 
-    componentWillUnmount() {
-      if (super.componentWillUnmount) {
-        super.componentWillUnmount();
+      componentWillUnmount() {
+        if (super.componentWillUnmount) {
+          super.componentWillUnmount();
+        }
+        const state = getState(this);
+        if (state.autorun) {
+          state.autorun.dispose();
+        }
       }
-      const state = getState(this);
-      if (state.autorun) {
-        state.autorun.dispose();
-      }
-    }
 
-    render() {
-      if (!super.render) {
-        return null;
-      }
-      const state = getState(this);
-      state.rendering = true;
-      if (!state.proxified) {
-        state.props = ObservableProxy.wrap(`${name}.props`, { ...state.props });
-        state.proxified = true;
-      }
-      if (!state.autorun) {
-        state.autorun = autorun(`${name}.render`, () => {
-          const result = super.render!();
-          if (result !== state.result) {
-            state.result = result;
-            if (!state.rendering) {
-              untracked(() => this.forceUpdate());
+      render() {
+        if (!super.render) {
+          return null;
+        }
+        const state = getState(this);
+        state.rendering = true;
+        if (!state.proxified) {
+          state.props = ObservableProxy.wrap(`${name}.props`, { ...state.props });
+          state.proxified = true;
+        }
+        if (!state.autorun) {
+          state.autorun = autorun(`${name}.render`, () => {
+            const result = super.render!();
+            if (result !== state.result) {
+              state.result = result;
+              if (!state.rendering) {
+                untracked(() => this.forceUpdate());
+              }
             }
-          }
-        });
+          });
+        }
+        state.rendering = false;
+        return state.result;
       }
-      state.rendering = false;
-      return state.result;
     }
-  }
-  Object.defineProperty(type, 'name', {
-    value: name,
-    configurable: true,
-    enumerable: false,
-    writable: false,
-  });
-  return type as any as T;
+    Object.defineProperty(type, 'name', {
+      value: name,
+      configurable: true,
+      enumerable: false,
+      writable: false,
+    });
+    return type as any as T;
+  };
 }

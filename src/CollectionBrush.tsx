@@ -17,7 +17,7 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
   descending?: boolean;
 }
 
-@Observer
+@Observer()
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 

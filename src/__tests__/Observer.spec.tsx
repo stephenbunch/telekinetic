@@ -10,7 +10,7 @@ interface Props {
   end: string
 }
 
-@Observer
+@Observer()
 class TestComponent extends React.Component<Props> {
 
   @observable
@@ -29,7 +29,7 @@ class TestComponent extends React.Component<Props> {
   }
 }
 
-describe('observer', () => {
+describe('Observer', () => {
   it('should automatically update when observable changes', () => {
     const wrapper = mount(<TestComponent end="!" other={0} />);
     const inst = wrapper.instance() as TestComponent;

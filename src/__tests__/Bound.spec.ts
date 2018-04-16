@@ -1,6 +1,6 @@
 import { Bound } from '../internal/Bound';
 
-describe('@bound', () => {
+describe('Bound', () => {
   it('should bind methods to the self', () => {
     class Foo {
       @Bound

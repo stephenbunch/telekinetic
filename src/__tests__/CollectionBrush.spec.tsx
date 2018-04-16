@@ -10,7 +10,7 @@ interface Item { message: string, count: number }
 
 class TestBrush extends CollectionBrush<number, Item, string> { }
 
-@Observer
+@Observer()
 class TestComponent extends React.Component {
   data = new Collection<number, Item>();
 
