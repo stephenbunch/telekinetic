@@ -48,31 +48,4 @@ export class OrderedSet<T> implements Iterable<T> {
     set.items = this.items.slice();
     return set;
   }
-
-  sort<V>(predicate: (item: T) => V) {
-    this.items.sort((a: T, b: T): number => {
-      const valueA = predicate(a);
-      const valueB = predicate(b);
-      if (valueA > valueB) {
-        return 1;
-      } else if (valueB > valueA) {
-        return -1;
-      } else {
-        return 0;
-      }
-    });
-  }
-
-  reverse() {
-    this.items.reverse();
-  }
-
-  toArray(): Array<T> {
-    return this.items.slice();
-  }
-
-  clear() {
-    this.set.clear();
-    this.items = [];
-  }
 }

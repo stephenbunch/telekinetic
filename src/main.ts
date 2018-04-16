@@ -1,7 +1,7 @@
+export * from './action';
 export * from './autorun';
 export * from './bound';
 export * from './CollectionBrush';
-export * from './CollectionBrushStore';
 export {
   ComputationError,
   untracked,
@@ -10,6 +10,7 @@ export {
 } from './Computation';
 export { ComputationContext } from './ComputationContext';
 export * from './computed';
+export * from './ComputedMap';
 export * from './ComputedValue';
 export * from './Dependency';
 export * from './Disposable';
@@ -22,7 +23,8 @@ export * from './ObservableMap';
 export * from './ObservableProxy';
 export * from './ObservableSet';
 export * from './observe';
-export * from './OrderedSet';
-export * from './ReactiveComponent';
-export * from './batch';
+export * from './observer';
+export * from './Store';
+export * from './StoreObserver';
+export * from './transaction';
 export * from './Value';

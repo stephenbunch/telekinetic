@@ -4,7 +4,6 @@ import { ComputedMap } from './ComputedMap';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
 import { observer } from './observer';
-import { OrderedSet } from './OrderedSet';
 import { Store } from './Store';
 import { StoreObserver } from './StoreObserver';
 import * as React from 'react';
@@ -61,10 +60,20 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   }
 
   @computed
-  private get sortedKeys(): OrderedSet<TKey> {
-    const sortedKeys = new OrderedSet(this.keys);
+  private get sortedKeys(): Array<TKey> {
+    const sortedKeys = Array.from(this.keys);
     if (this.props.sort) {
-      sortedKeys.sort((key: TKey) => this.sortKeys!.get(key)!);
+      sortedKeys.sort((a, b) => {
+        const keyA = this.sortKeys!.get(a)!;
+        const keyB = this.sortKeys!.get(b)!;
+        if (keyA > keyB) {
+          return 1;
+        } else if (keyA < keyB) {
+          return -1;
+        } else {
+          return 0;
+        }
+      });
       if (this.props.descending) {
         sortedKeys.reverse();
       }
@@ -73,7 +82,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   }
 
   render() {
-    const items = this.sortedKeys.toArray().map((key) =>
+    const items = this.sortedKeys.map((key) =>
       this.renderedItems.get(key));
     return <React.Fragment>{items}</React.Fragment>;
   }
