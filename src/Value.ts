@@ -2,7 +2,7 @@ import { Bound } from './internal/Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Name } from './Name';
-import { Store } from './Store';
+import { Store } from './redux/Store';
 
 export class Value<T> implements Input<T> {
   readonly name: Name;

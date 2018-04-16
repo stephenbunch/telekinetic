@@ -1,4 +1,4 @@
-import { Store, Action, Listener, Unsubscriber } from '../../Store';
+import { Store, Action, Listener, Unsubscriber } from '../../redux/Store';
 import { EventController } from '../../Event';
 
 export type Reducer = (state: {}, action: Action) => {};

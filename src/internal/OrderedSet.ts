@@ -48,4 +48,8 @@ export class OrderedSet<T> implements Iterable<T> {
     set.items = this.items.slice();
     return set;
   }
+
+  indexOf(item: T) {
+    return this.items.indexOf(item);
+  }
 }
