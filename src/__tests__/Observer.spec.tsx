@@ -1,9 +1,9 @@
 import { ComputationContext } from '../ComputationContext';
 import { mount } from 'enzyme';
-import { Observable } from '../Observable';
+import { Observable } from '../decorators/Observable';
 import * as React from 'react';
-import { Computed } from '../Computed';
-import { Observer } from '../Observer';
+import { Computed } from '../decorators/Computed';
+import { Observer } from '../decorators/Observer';
 
 interface Props {
   other: number

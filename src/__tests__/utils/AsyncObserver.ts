@@ -10,13 +10,13 @@ export class AsyncObserver<T = void>
     return this.def.promise;
   }
 
-  @Bound
+  @Bound()
   next(value: T) {
     this.def.resolve(value);
     this.def = new Deferred<T>();
   }
 
-  @Bound
+  @Bound()
   error(error: Error) {
     this.def.reject(error);
     this.def = new Deferred<T>();

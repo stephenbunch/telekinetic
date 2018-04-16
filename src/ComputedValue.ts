@@ -37,7 +37,7 @@ export class ComputedValue<T> implements Input<T> {
     return this.producer();
   }
 
-  @Bound
+  @Bound()
   private onHot() {
     let firstRun = true;
     this.autorun = autorun(this.name, (context) => {
@@ -57,7 +57,7 @@ export class ComputedValue<T> implements Input<T> {
     });
   }
 
-  @Bound
+  @Bound()
   private onCold() {
     this.autorun!.dispose();
     this.autorun = undefined;

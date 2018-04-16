@@ -34,12 +34,12 @@ export class Value<T> implements Input<T> {
     }
   }
 
-  @Bound
+  @Bound()
   private onHot() {
     this.store = Value.store;
   }
 
-  @Bound
+  @Bound()
   private onCold() {
     this.store = undefined;
   }

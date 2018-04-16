@@ -1,5 +1,5 @@
 import { Name } from '../Name';
-import { Observable } from '../Observable';
+import { Observable } from '../decorators/Observable';
 import { observe } from '../observe';
 
 describe('Observable', () => {

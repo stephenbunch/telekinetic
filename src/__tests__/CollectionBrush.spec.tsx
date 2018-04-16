@@ -1,8 +1,8 @@
 import { Collection } from '../Collection';
 import { CollectionBrush } from '../CollectionBrush';
 import { mount } from 'enzyme';
-import { Observable } from '../Observable';
-import { Observer } from '../Observer';
+import { Observable } from '../decorators/Observable';
+import { Observer } from '../decorators/Observer';
 import * as React from 'react';
 
 interface Item { message: string, count: number }

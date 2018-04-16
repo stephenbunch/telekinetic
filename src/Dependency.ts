@@ -21,7 +21,7 @@ export class Dependency {
     this.name = name;
   }
 
-  @Bound
+  @Bound()
   private onContextDestroy(context: ComputationContextClass) {
     this.contexts.delete(context);
     this.checkIsCold();

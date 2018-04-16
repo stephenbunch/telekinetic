@@ -1,12 +1,12 @@
-import { Action } from './Action';
+import { Action } from './decorators/Action';
 import { Collection } from './Collection';
 import { CollectionObserver } from './CollectionObserver';
-import { Computed } from './Computed';
+import { Computed } from './decorators/Computed';
 import { ComputedMap } from './ComputedMap';
 import { Name } from './Name';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
-import { Observer } from './Observer';
+import { Observer } from './decorators/Observer';
 import * as React from 'react';
 
 type ItemRenderer<TItem> = (item: TItem) => React.ReactNode;

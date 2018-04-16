@@ -1,4 +1,3 @@
-export * from './Action';
 export * from './autorun';
 export * from './Collection';
 export * from './CollectionBrush';
@@ -10,20 +9,21 @@ export {
   RunFunction,
 } from './Computation';
 export { ComputationContext } from './ComputationContext';
-export * from './Computed';
 export * from './ComputedMap';
 export * from './ComputedValue';
+export * from './decorators/Action';
+export * from './decorators/Computed';
+export * from './decorators/Observable';
+export * from './decorators/Observer';
 export * from './Dependency';
 export * from './Disposable';
 export * from './Event';
 export * from './Input';
 export * from './Logger';
 export * from './Name';
-export * from './Observable';
 export * from './ObservableMap';
 export * from './ObservableProxy';
 export * from './ObservableSet';
 export * from './observe';
-export * from './Observer';
 export * from './transaction';
 export * from './Value';
