@@ -1,17 +1,17 @@
 import { action } from './action';
+import { Collection } from './Collection';
+import { CollectionObserver } from './CollectionObserver';
 import { computed } from './computed';
 import { ComputedMap } from './ComputedMap';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
 import { observer } from './observer';
-import { Store } from './Store';
-import { StoreObserver } from './StoreObserver';
 import * as React from 'react';
 
 type ItemRenderer<TItem> = (item: TItem) => React.ReactNode;
 
 export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
-  data: Store<TKey, TItem>;
+  data: Collection<TKey, TItem>;
   render(item: TItem): React.ReactNode;
   sort?(item: TItem): TSortKey;
   descending?: boolean;
@@ -22,8 +22,8 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 
   @computed
-  private get storeObserver(): StoreObserver<TKey, TItem> {
-    return new StoreObserver(this.props.data, this);
+  private get observer(): CollectionObserver<TKey, TItem> {
+    return new CollectionObserver(this.props.data, this);
   }
 
   /**
@@ -32,7 +32,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   @computed
   private get keys(): ObservableSet<TKey> {
     return new ObservableSet(
-      `${this.constructor.name}.keys`, this.storeObserver.store.keys());
+      `${this.constructor.name}.keys`, this.observer.collection.keys());
   }
 
   /**
@@ -44,7 +44,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
       return new ComputedMap<TKey, TItem, TSortKey>(
         `${this.constructor.name}.sortKeys`,
         this.getSortKeySelector(this.props.sort),
-        Array.from(this.storeObserver.store)
+        Array.from(this.observer.collection)
       );
     }
     return null;
@@ -55,7 +55,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
     return new ComputedMap<TKey, TItem, React.ReactNode>(
       `${this.constructor.name}.renderedEntries`,
       this.getItemRenderer(this.props.render),
-      Array.from(this.storeObserver.store)
+      Array.from(this.observer.collection)
     );
   }
 

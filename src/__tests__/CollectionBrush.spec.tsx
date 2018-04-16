@@ -1,9 +1,9 @@
+import { Collection } from '../Collection';
 import { CollectionBrush } from '../CollectionBrush';
 import { computed } from '../computed';
 import { mount } from 'enzyme';
 import { observable } from '../observable';
 import { observer } from '../observer';
-import { Store } from '../Store';
 import * as React from 'react';
 
 interface Item { message: string, count: number }
@@ -12,7 +12,7 @@ class TestBrush extends CollectionBrush<number, Item, string> { }
 
 @observer
 class TestComponent extends React.Component {
-  data = new Store<number, Item>();
+  data = new Collection<number, Item>();
 
   count = 0;
 
