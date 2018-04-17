@@ -1,6 +1,3 @@
-export type Name = string;
-export type Uid = number;
-
 export enum UriSegmentKind {
   Name = 1,
   Uid = 2,
@@ -8,9 +5,9 @@ export enum UriSegmentKind {
 
 export class NameSegment {
   readonly kind = UriSegmentKind.Name;
-  readonly name: Name;
+  readonly name: string;
 
-  constructor(name: Name) {
+  constructor(name: string) {
     this.name = name;
   }
 
@@ -21,9 +18,9 @@ export class NameSegment {
 
 export class UidSegment {
   readonly kind = UriSegmentKind.Uid
-  readonly uid: Uid;
+  readonly uid: number;
 
-  constructor(uid: Uid) {
+  constructor(uid: number) {
     this.uid = uid;
   }
 
@@ -43,5 +40,13 @@ export class Uri {
 
   toString() {
     return this.segments.join('.');
+  }
+
+  static create(...segments: Array<string | number>): Uri {
+    return new Uri(
+      segments.map((value) =>
+        typeof value === 'number' ? new UidSegment(value) :
+          new NameSegment(value)));
+
   }
 }

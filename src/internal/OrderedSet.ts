@@ -1,13 +1,13 @@
 export class OrderedSet<T> implements Iterable<T> {
-  private set: Set<T>;
+  private itemSet: Set<T>;
   private items: Array<T>;
 
   constructor(values?: Iterable<T>) {
     if (values) {
-      this.set = new Set(values);
-      this.items = Array.from(this.set);
+      this.itemSet = new Set(values);
+      this.items = Array.from(this.itemSet);
     } else {
-      this.set = new Set();
+      this.itemSet = new Set();
       this.items = [];
     }
   }
@@ -17,34 +17,40 @@ export class OrderedSet<T> implements Iterable<T> {
   }
 
   get size(): number {
-    return this.set.size;
+    return this.itemSet.size;
   }
 
   get(index: number): T | undefined {
     return this.items[index];
   }
 
+  set(index: number, item: T) {
+    if (index < this.items.length) {
+      this.items[index] = item;
+    }
+  }
+
   has(item: T): boolean {
-    return this.set.has(item);
+    return this.itemSet.has(item);
   }
 
   delete(item: T) {
-    if (this.set.has(item)) {
-      this.set.delete(item);
+    if (this.itemSet.has(item)) {
+      this.itemSet.delete(item);
       this.items.splice(this.items.indexOf(item), 1);
     }
   }
 
   add(item: T) {
-    if (!this.set.has(item)) {
-      this.set.add(item);
+    if (!this.itemSet.has(item)) {
+      this.itemSet.add(item);
       this.items.push(item);
     }
   }
 
   clone(): OrderedSet<T> {
     const set = new OrderedSet<T>();
-    set.set = new Set(this.set);
+    set.itemSet = new Set(this.itemSet);
     set.items = this.items.slice();
     return set;
   }

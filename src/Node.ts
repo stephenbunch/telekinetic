@@ -1,14 +1,49 @@
 import { OrderedSet } from './internal/OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 
+export class ConflictError extends Error { }
+export class HandleClosedError extends Error { }
+
+const typeConflict = 'This node already stores a different value type.';
+const handleClosed = 'Handle is closed.';
+
+export class Handle {
+  private node: Node;
+  private closed = false;
+
+  constructor(node: Node) {
+    this.node = node;
+    this.node.handles.add(this);
+  }
+
+  write(value: any) {
+    if (this.closed) {
+      throw new HandleClosedError(handleClosed);
+    }
+    this.node.write(value);
+  }
+
+  close() {
+    this.closed = true;
+    this.node.handles.delete(this);
+  }
+
+  delete() {
+    if (this.closed) {
+      throw new HandleClosedError(handleClosed);
+    }
+    this.close();
+    this.node.delete();
+  }
+}
+
 export class Node {
-  readonly key: any;
+
   private readonly parent: Node | undefined;
-
   private value: NodeValue | undefined;
+  handles = new Set<Handle>();
 
-  constructor(key?: any, parent?: Node) {
-    this.key = key;
+  constructor(parent?: Node) {
     this.parent = parent;
   }
 
@@ -17,13 +52,16 @@ export class Node {
   }
 
   delete() {
-    let parent = this.parent;
-    while (parent && parent.value && parent.value.removeChild) {
-      parent.value.removeChild(this);
-      if (parent.isEmpty()) {
-        parent = parent.parent;
-      } else {
-        break;
+    this.value = undefined;
+    if (this.handles.size === 0) {
+      let parent = this.parent;
+      if (parent) {
+        if (parent.value && parent.value.removeChild) {
+          parent.value.removeChild(this);
+        }
+        if (parent.isEmpty()) {
+          parent.delete();
+        }
       }
     }
   }
@@ -31,43 +69,43 @@ export class Node {
   write(value: any) {
     if (Array.isArray(value)) {
       if (this.value === undefined) {
-        this.value = new ArrayValue();
+        this.value = new ArrayValue(this);
       } else if (!(this.value instanceof ArrayValue)) {
-        throw new Error('This node is already storing a different value type.');
+        throw new ConflictError(typeConflict);
       }
     } else if (typeof value === 'object' && value !== null) {
       if (this.value === undefined) {
-        this.value = new ObjectValue();
+        this.value = new ObjectValue(this);
       } else if (!(this.value instanceof ObjectValue)) {
-        throw new Error('This node is already storing a different value type.');
+        throw new ConflictError(typeConflict);
       }
     } else {
       if (this.value === undefined) {
-        this.value = new RawValue();
+        this.value = new RawValue(this);
       } else if (!(this.value instanceof RawValue)) {
-        throw new Error('This node is already storing a different value type.');
+        throw new ConflictError(typeConflict);
       }
     }
     this.value!.write(value);
   }
 
-  create(uri: Uri): Node {
+  open(uri: Uri): Handle {
     let node = this as Node;
     for (let i = 0; i < uri.segments.length; i++) {
       const segment = uri.segments[i];
       if (segment.kind === UriSegmentKind.Name) {
-        if (node.value === undefined || !(node.value instanceof ObjectValue)) {
+        if (node.value === null || !(node.value instanceof ObjectValue)) {
           node.value = new ObjectValue(node);
         }
         node = node.value.addChild!(segment.name);
       } else if (segment.kind === UriSegmentKind.Uid) {
-        if (node.value === undefined || !(node.value instanceof ArrayValue)) {
+        if (node.value === null || !(node.value instanceof ArrayValue)) {
           node.value = new ArrayValue(node);
         }
         node = node.value.addChild!(segment.uid);
       }
     }
-    return node;
+    return new Handle(node);
   }
 
   getSnapshot() {
@@ -76,7 +114,7 @@ export class Node {
 }
 
 export interface NodeValue {
-  readonly owner: Node | undefined;
+  readonly owner: Node;
 
   isEmpty(): boolean;
   getSnapshot(): any;
@@ -87,11 +125,11 @@ export interface NodeValue {
 }
 
 export class RawValue implements NodeValue {
-  readonly owner: Node | undefined;
+  readonly owner: Node;
 
   private data: any;
 
-  constructor(owner?: Node) {
+  constructor(owner: Node) {
     this.owner = owner;
   }
 
@@ -109,11 +147,12 @@ export class RawValue implements NodeValue {
 }
 
 export class ObjectValue implements NodeValue {
-  readonly owner: Node | undefined;
+  readonly owner: Node;
 
-  private readonly children = new Map<string, Node>();
+  private readonly children = new OrderedSet<Node>();
+  private readonly keys = new OrderedSet<string>();
 
-  constructor(owner?: Node) {
+  constructor(owner: Node) {
     this.owner = owner;
   }
 
@@ -122,15 +161,21 @@ export class ObjectValue implements NodeValue {
   }
 
   removeChild(node: Node) {
-    this.children.delete(node.key);
+    if (this.children.has(node)) {
+      const index = this.children.indexOf(node);
+      this.children.delete(node);
+      this.keys.delete(this.keys.get(index)!);
+    }
   }
 
   addChild(key: string) {
-    if (this.children.has(key)) {
-      return this.children.get(key)!;
+    if (this.keys.has(key)) {
+      const index = this.keys.indexOf(key);
+      return this.children.get(index)!;
     } else {
-      const node = new Node(key, this.owner);
-      this.children.set(key, node);
+      const node = new Node(this.owner);
+      this.children.add(node);
+      this.keys.add(key);
       return node;
     }
   }
@@ -144,7 +189,9 @@ export class ObjectValue implements NodeValue {
 
   getSnapshot() {
     const obj = {} as any;
-    for (const [key, node] of this.children) {
+    for (let i = 0; i < this.children.size; i++) {
+      const key = this.keys.get(i)!;
+      const node = this.children.get(i)!;
       obj[key] = node.getSnapshot();
     }
     return obj;
@@ -152,12 +199,11 @@ export class ObjectValue implements NodeValue {
 }
 
 export class ArrayValue implements NodeValue {
-  readonly owner: Node | undefined;
+  readonly owner: Node;
 
   private readonly children = new OrderedSet<Node>();
-  private readonly uids = new OrderedSet<any>();
 
-  constructor(owner?: Node) {
+  constructor(owner: Node) {
     this.owner = owner;
   }
 
@@ -165,29 +211,26 @@ export class ArrayValue implements NodeValue {
     return this.children.size > 0;
   }
 
-  addChild(key: any): Node {
-    if (this.uids.has(key)) {
-      return this.children.get(this.uids.indexOf(key))!;
+  addChild(index: number): Node {
+    if (index < this.children.size) {
+      return this.children.get(index)!;
     } else {
-      const node = new Node(key, this.owner);
-      this.uids.add(key);
+      const node = new Node(this.owner);
+      this.children.add(node);
       return node;
     }
   }
 
   removeChild(node: Node) {
-    if (this.children.has(node)) {
-      const index = this.children.indexOf(node);
-      this.children.delete(node);
-      this.uids.delete(this.uids.get(index)!);
-    }
+    this.children.delete(node);
   }
 
   write(arr: any[]) {
     for (let i = 0; i < arr.length; i++) {
       let node = this.children.get(i);
       if (!node) {
-        node = new Node(Symbol(), this.owner);
+        node = new Node(this.owner);
+        this.children.add(node);
       }
       node.write(arr[i]);
     }
