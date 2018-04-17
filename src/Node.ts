@@ -2,15 +2,11 @@ import { OrderedSet } from './internal/OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 
 export class Node {
-  private readonly parent: Node | undefined;
+  private parent: Node | undefined;
   private value: NodeValue | undefined;
 
   constructor(parent?: Node) {
     this.parent = parent;
-  }
-
-  isEmpty(): boolean {
-    return this.value === undefined || this.value.isEmpty();
   }
 
   delete() {
@@ -18,6 +14,7 @@ export class Node {
     if (this.parent && this.parent.value && this.parent.value.removeChild) {
       this.parent.value.removeChild(this);
     }
+    this.parent = undefined;
   }
 
   write(value: any) {
@@ -59,10 +56,9 @@ export class Node {
   }
 }
 
-export interface NodeValue {
+interface NodeValue {
   readonly owner: Node;
 
-  isEmpty(): boolean;
   getSnapshot(): any;
   write(value: any): void;
 
@@ -70,17 +66,13 @@ export interface NodeValue {
   findOrCreateChild?(key: any): Node;
 }
 
-export class RawValue implements NodeValue {
+class RawValue implements NodeValue {
   readonly owner: Node;
 
   private data: any;
 
   constructor(owner: Node) {
     this.owner = owner;
-  }
-
-  isEmpty() {
-    return this.data === undefined;
   }
 
   write(data: any) {
@@ -92,7 +84,7 @@ export class RawValue implements NodeValue {
   }
 }
 
-export class ObjectValue implements NodeValue {
+class ObjectValue implements NodeValue {
   readonly owner: Node;
 
   private readonly children = new OrderedSet<Node>();
@@ -100,10 +92,6 @@ export class ObjectValue implements NodeValue {
 
   constructor(owner: Node) {
     this.owner = owner;
-  }
-
-  isEmpty() {
-    return this.children.size === 0;
   }
 
   removeChild(node: Node) {
@@ -144,17 +132,13 @@ export class ObjectValue implements NodeValue {
   }
 }
 
-export class ArrayValue implements NodeValue {
+class ArrayValue implements NodeValue {
   readonly owner: Node;
 
   private readonly children = new OrderedSet<Node>();
 
   constructor(owner: Node) {
     this.owner = owner;
-  }
-
-  isEmpty() {
-    return this.children.size === 0;
   }
 
   findOrCreateChild(index: number): Node {
