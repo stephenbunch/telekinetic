@@ -10,7 +10,7 @@ describe('Node', () => {
       foo: 'hello',
     });
     foo.delete();
-    expect(tree.getSnapshot()).toBeUndefined();
+    expect(tree.getSnapshot()).toEqual({});
   });
 
   it('should write a nested value', () => {
@@ -32,24 +32,7 @@ describe('Node', () => {
       },
     });
     baz.delete();
-    expect(tree.getSnapshot()).toBeUndefined();
-  });
-
-  it('should not delete a node with an open handle', () => {
-    const tree = new Node();
-    const foo = tree.open(Uri.create('foo'));
-    const bar = tree.open(Uri.create('foo', 'bar'));
-    expect(tree.getSnapshot()).toEqual({
-      foo: {
-        bar: undefined,
-      },
-    });
-    bar.delete();
-    expect(tree.getSnapshot()).toEqual({
-      foo: undefined,
-    });
-    foo.delete();
-    expect(tree.getSnapshot()).toBeUndefined();
+    expect(tree.getSnapshot()).toEqual({ foo: {} });
   });
 
   it('should attach to existing node', () => {

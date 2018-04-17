@@ -1,30 +1,9 @@
 import { OrderedSet } from './internal/OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 
-export class Handle {
-  private node: Node;
-  private closed = false;
-
-  constructor(node: Node) {
-    this.node = node;
-    this.node.handles.add(this);
-  }
-
-  write(value: any) {
-    this.node.write(value);
-  }
-
-  delete() {
-    this.node.handles.delete(this);
-    this.node.delete();
-  }
-}
-
 export class Node {
-
   private readonly parent: Node | undefined;
   private value: NodeValue | undefined;
-  handles = new Set<Handle>();
 
   constructor(parent?: Node) {
     this.parent = parent;
@@ -36,16 +15,8 @@ export class Node {
 
   delete() {
     this.value = undefined;
-    if (this.handles.size === 0) {
-      let parent = this.parent;
-      if (parent) {
-        if (parent.value && parent.value.removeChild) {
-          parent.value.removeChild(this);
-        }
-        if (parent.isEmpty()) {
-          parent.delete();
-        }
-      }
+    if (this.parent && this.parent.value && this.parent.value.removeChild) {
+      this.parent.value.removeChild(this);
     }
   }
 
@@ -64,7 +35,7 @@ export class Node {
     this.value!.write(value);
   }
 
-  open(uri: Uri): Handle {
+  open(uri: Uri): Node {
     let node = this as Node;
     for (let i = 0; i < uri.segments.length; i++) {
       const segment = uri.segments[i];
@@ -80,7 +51,7 @@ export class Node {
         node = node.value.addChild!(segment.index);
       }
     }
-    return new Handle(node);
+    return node;
   }
 
   getSnapshot() {
