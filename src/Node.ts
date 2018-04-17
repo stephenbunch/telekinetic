@@ -35,7 +35,7 @@ export class Node {
     this.value!.write(value);
   }
 
-  open(uri: Uri): Node {
+  findOrCreateChild(uri: Uri): Node {
     let node = this as Node;
     for (let i = 0; i < uri.segments.length; i++) {
       const segment = uri.segments[i];
@@ -43,12 +43,12 @@ export class Node {
         if (!(node.value instanceof ObjectValue)) {
           node.value = new ObjectValue(node);
         }
-        node = node.value.addChild!(segment.name);
+        node = node.value.findOrCreateChild!(segment.name);
       } else if (segment.kind === UriSegmentKind.Index) {
         if (!(node.value instanceof ArrayValue)) {
           node.value = new ArrayValue(node);
         }
-        node = node.value.addChild!(segment.index);
+        node = node.value.findOrCreateChild!(segment.index);
       }
     }
     return node;
@@ -67,7 +67,7 @@ export interface NodeValue {
   write(value: any): void;
 
   removeChild?(node: Node): void;
-  addChild?(key: any): Node;
+  findOrCreateChild?(key: any): Node;
 }
 
 export class RawValue implements NodeValue {
@@ -114,7 +114,7 @@ export class ObjectValue implements NodeValue {
     }
   }
 
-  addChild(key: string) {
+  findOrCreateChild(key: string) {
     if (this.keys.has(key)) {
       const index = this.keys.indexOf(key);
       return this.children.get(index)!;
@@ -128,7 +128,7 @@ export class ObjectValue implements NodeValue {
 
   write(obj: any) {
     for (const key of Object.keys(obj)) {
-      const node = this.addChild(key);
+      const node = this.findOrCreateChild(key);
       node.write(obj[key]);
     }
   }
@@ -157,7 +157,7 @@ export class ArrayValue implements NodeValue {
     return this.children.size === 0;
   }
 
-  addChild(index: number): Node {
+  findOrCreateChild(index: number): Node {
     if (index < this.children.size) {
       return this.children.get(index)!;
     } else {

@@ -4,7 +4,7 @@ import { Node } from '../Node';
 describe('Node', () => {
   it('should write a value', () => {
     const tree = new Node();
-    const foo = tree.open(Uri.create('foo'));
+    const foo = tree.findOrCreateChild(Uri.create('foo'));
     foo.write('hello');
     expect(tree.getSnapshot()).toEqual({
       foo: 'hello',
@@ -15,8 +15,8 @@ describe('Node', () => {
 
   it('should write a nested value', () => {
     const tree = new Node();
-    const bar = tree.open(Uri.create('foo', 'bar'));
-    const baz = tree.open(Uri.create('foo', 'baz'));
+    const bar = tree.findOrCreateChild(Uri.create('foo', 'bar'));
+    const baz = tree.findOrCreateChild(Uri.create('foo', 'baz'));
     bar.write('hello');
     baz.write('world');
     expect(tree.getSnapshot()).toEqual({
@@ -44,7 +44,7 @@ describe('Node', () => {
         baz: 'world',
       },
     });
-    const bar = tree.open(Uri.create('foo', 'bar'));
+    const bar = tree.findOrCreateChild(Uri.create('foo', 'bar'));
     bar.write(12);
     expect(tree.getSnapshot()).toEqual({
       foo: {
@@ -63,8 +63,8 @@ describe('Node', () => {
   it('should attach to existing items in array', () => {
     const tree = new Node();
     tree.write({ foo: [1, 2, 3] });
-    const a = tree.open(Uri.create('foo', 0));
-    const b = tree.open(Uri.create('foo', 1));
+    const a = tree.findOrCreateChild(Uri.create('foo', 0));
+    const b = tree.findOrCreateChild(Uri.create('foo', 1));
     a.write(101);
     b.write(102);
     expect(tree.getSnapshot()).toEqual({ foo: [101, 102, 3] });
