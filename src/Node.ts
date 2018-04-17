@@ -1,10 +1,6 @@
 import { OrderedSet } from './internal/OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 
-export class HandleClosedError extends Error { }
-
-const handleClosed = 'Handle is closed.';
-
 export class Handle {
   private node: Node;
   private closed = false;
@@ -15,22 +11,11 @@ export class Handle {
   }
 
   write(value: any) {
-    if (this.closed) {
-      throw new HandleClosedError(handleClosed);
-    }
     this.node.write(value);
   }
 
-  close() {
-    this.closed = true;
-    this.node.handles.delete(this);
-  }
-
   delete() {
-    if (this.closed) {
-      throw new HandleClosedError(handleClosed);
-    }
-    this.close();
+    this.node.handles.delete(this);
     this.node.delete();
   }
 }
