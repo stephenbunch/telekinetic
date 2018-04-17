@@ -1,6 +1,6 @@
 export enum UriSegmentKind {
   Name = 1,
-  Uid = 2,
+  Index = 2,
 }
 
 export class NameSegment {
@@ -16,26 +16,46 @@ export class NameSegment {
   }
 }
 
-export class UidSegment {
-  readonly kind = UriSegmentKind.Uid
-  readonly uid: number;
+export class IndexSegment {
+  readonly kind = UriSegmentKind.Index
+  readonly index: number;
 
-  constructor(uid: number) {
-    this.uid = uid;
+  constructor(index: number) {
+    this.index = index;
   }
 
   toString() {
-    return this.uid.toString();
+    return this.index.toString();
   }
 }
 
-export type UriSegment = NameSegment | UidSegment;
+export class InstanceSegment implements IndexSegment {
+  readonly kind = UriSegmentKind.Index
+
+  private readonly instance: Symbol;
+  private readonly instances: Symbol[];
+
+  constructor(instance: Symbol, instances: Symbol[]) {
+    this.instance = instance;
+    this.instances = instances;
+  }
+
+  get index(): number {
+    return this.instances.indexOf(this.instance);
+  }
+
+  toString() {
+    return this.index.toString();
+  }
+}
+
+export type UriSegment = NameSegment | IndexSegment;
 
 export class Uri {
-  readonly segments: ReadonlyArray<UriSegment>;
+  readonly segments: UriSegment[];
 
   constructor(segments: UriSegment[]) {
-    this.segments = Object.freeze(segments);
+    this.segments = segments;
   }
 
   toString() {
@@ -45,7 +65,7 @@ export class Uri {
   static create(...segments: Array<string | number>): Uri {
     return new Uri(
       segments.map((value) =>
-        typeof value === 'number' ? new UidSegment(value) :
+        typeof value === 'number' ? new IndexSegment(value) :
           new NameSegment(value)));
 
   }

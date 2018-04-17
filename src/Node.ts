@@ -1,10 +1,8 @@
 import { OrderedSet } from './internal/OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 
-export class ConflictError extends Error { }
 export class HandleClosedError extends Error { }
 
-const typeConflict = 'This node already stores a different value type.';
 const handleClosed = 'Handle is closed.';
 
 export class Handle {
@@ -68,23 +66,15 @@ export class Node {
 
   write(value: any) {
     if (Array.isArray(value)) {
-      if (this.value === undefined) {
+      if (!(this.value instanceof ArrayValue)) {
         this.value = new ArrayValue(this);
-      } else if (!(this.value instanceof ArrayValue)) {
-        throw new ConflictError(typeConflict);
       }
     } else if (typeof value === 'object' && value !== null) {
-      if (this.value === undefined) {
+      if (!(this.value instanceof ObjectValue)) {
         this.value = new ObjectValue(this);
-      } else if (!(this.value instanceof ObjectValue)) {
-        throw new ConflictError(typeConflict);
       }
-    } else {
-      if (this.value === undefined) {
-        this.value = new RawValue(this);
-      } else if (!(this.value instanceof RawValue)) {
-        throw new ConflictError(typeConflict);
-      }
+    } else if (!(this.value instanceof RawValue)) {
+      this.value = new RawValue(this);
     }
     this.value!.write(value);
   }
@@ -94,15 +84,15 @@ export class Node {
     for (let i = 0; i < uri.segments.length; i++) {
       const segment = uri.segments[i];
       if (segment.kind === UriSegmentKind.Name) {
-        if (node.value === null || !(node.value instanceof ObjectValue)) {
+        if (!(node.value instanceof ObjectValue)) {
           node.value = new ObjectValue(node);
         }
         node = node.value.addChild!(segment.name);
-      } else if (segment.kind === UriSegmentKind.Uid) {
-        if (node.value === null || !(node.value instanceof ArrayValue)) {
+      } else if (segment.kind === UriSegmentKind.Index) {
+        if (!(node.value instanceof ArrayValue)) {
           node.value = new ArrayValue(node);
         }
-        node = node.value.addChild!(segment.uid);
+        node = node.value.addChild!(segment.index);
       }
     }
     return new Handle(node);
@@ -208,7 +198,7 @@ export class ArrayValue implements NodeValue {
   }
 
   isEmpty() {
-    return this.children.size > 0;
+    return this.children.size === 0;
   }
 
   addChild(index: number): Node {

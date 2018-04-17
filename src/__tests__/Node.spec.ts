@@ -1,4 +1,4 @@
-import { Uri, NameSegment, UidSegment } from '../Uri';
+import { Uri, NameSegment, IndexSegment } from '../Uri';
 import { Node } from '../Node';
 
 describe('Node', () => {
@@ -75,5 +75,19 @@ describe('Node', () => {
         baz: 'world',
       },
     });
+  });
+
+  it('should attach to existing items in array', () => {
+    const tree = new Node();
+    tree.write({ foo: [1, 2, 3] });
+    const a = tree.open(Uri.create('foo', 0));
+    const b = tree.open(Uri.create('foo', 1));
+    a.write(101);
+    b.write(102);
+    expect(tree.getSnapshot()).toEqual({ foo: [101, 102, 3] });
+    a.delete();
+    expect(tree.getSnapshot()).toEqual({ foo: [102, 3] });
+    b.delete();
+    expect(tree.getSnapshot()).toEqual({ foo: [3] });
   });
 });
