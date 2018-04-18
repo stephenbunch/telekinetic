@@ -1,9 +1,9 @@
-import { Uri, NameSegment, IndexSegment } from '../Uri';
-import { State } from '../State';
 import { observe } from '../rxjs/observe';
+import { State } from '../State';
+import { Uri, NameSegment, IndexSegment } from '../Uri';
 
 describe.only('State', () => {
-  it('should write a value', () => {
+  it('should set a value', () => {
     const state = new State();
     const foo = state.findOrCreate(Uri.create('foo'));
     foo.set('hello');
@@ -14,7 +14,7 @@ describe.only('State', () => {
     expect(state.get()).toEqual({});
   });
 
-  it('should write a nested value', () => {
+  it('should set a nested value', () => {
     const state = new State();
     const bar = state.findOrCreate(Uri.create('foo', 'bar'));
     const baz = state.findOrCreate(Uri.create('foo', 'baz'));
@@ -36,7 +36,7 @@ describe.only('State', () => {
     expect(state.get()).toEqual({ foo: {} });
   });
 
-  it('should attach to existing node', () => {
+  it('should find existing state node', () => {
     const state = new State();
     state.set({ foo: { bar: 'hello', baz: 'world' } });
     expect(state.get()).toEqual({
@@ -61,7 +61,7 @@ describe.only('State', () => {
     });
   });
 
-  it('should attach to existing items in array', () => {
+  it('should find existing items in an array', () => {
     const state = new State();
     state.set({ foo: [1, 2, 3] });
     const a = state.findOrCreate(Uri.create('foo', 0));

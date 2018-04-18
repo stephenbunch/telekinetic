@@ -1,87 +1,36 @@
-import { KeyedDependency } from '../internal/KeyedDependency';
 import { Uri } from '../Uri';
+import { Value } from '../Value';
 
-const STATE = Symbol('STATE');
+const valuesByInstance = new WeakMap<any, Map<PropertyKey, Value<any>>>();
 
-const DEFAULT: PropertyDescriptor = {
-  configurable: true,
-  enumerable: true,
-};
-
-class ObservableState {
-  dependencies: KeyedDependency;
-  values = new Map<PropertyKey, any>();
-
-  constructor(uri: Uri) {
-    this.dependencies = new KeyedDependency(uri);
+function getValue(instance: any, key: PropertyKey, initialValue: any): Value<any> {
+  if (!valuesByInstance.has(instance)) {
+    valuesByInstance.set(instance, new Map());
   }
-}
-
-class ObservableHost {
-  [STATE]: ObservableState | undefined;
-}
-
-function getState(obj: ObservableHost): ObservableState {
-  if (!obj[STATE]) {
-    if (obj.constructor) {
-      obj[STATE] = new ObservableState(Uri.create(obj.constructor.name));
-    } else {
-      obj[STATE] = new ObservableState(Uri.create('$$object'));
-    }
+  const valuesByKey = valuesByInstance.get(instance)!;
+  if (!valuesByKey.has(key)) {
+    const uri = Uri.create(instance.constructor.name);
+    valuesByKey.set(key, new Value(uri, initialValue));
   }
-  return obj[STATE]!;
-}
-
-function getValue(obj: ObservableHost,
-  base: PropertyDescriptor | undefined, key: PropertyKey): any {
-  if (base && base.get) {
-    return base.get.call(obj);
-  } else {
-    const state = getState(obj);
-    if (state.values.has(key)) {
-      return state.values.get(key);
-    } else if (base) {
-      return base.value;
-    } else {
-      return undefined;
-    }
-  }
-}
-
-function setValue(obj: ObservableHost,
-  base: PropertyDescriptor | undefined, key: PropertyKey, value: any) {
-  if (base && base.set) {
-    base.set(value);
-  } else {
-    getState(obj).values.set(key, value);
-  }
+  return valuesByKey.get(key)!
 }
 
 export const Observable = (): PropertyDecorator => (target: any,
   key: PropertyKey) => {
-  const base = Object.getOwnPropertyDescriptor(target, key);
-  const descriptor: PropertyDescriptor = { ...(base || DEFAULT) };
-  if (descriptor.configurable) {
-    if (!base ||
-      base.get || Object.prototype.hasOwnProperty.call(base, 'value')) {
-      descriptor.get = function (this: ObservableHost) {
-        getState(this).dependencies.depend(key);
-        return getValue(this, base, key);
-      };
-    }
-    if (!base || base.set || base.writable) {
-      descriptor.set = function (this: ObservableHost, value: any) {
-        const current = getValue(this, base, key);
-        if (current !== value) {
-          setValue(this, base, key, value);
-          getState(this).dependencies.changed(key);
-        }
-      };
-    }
-    if (descriptor.get || descriptor.set) {
-      delete descriptor.value;
-      delete descriptor.writable;
-    }
-    Object.defineProperty(target, key, descriptor);
+  const base = Object.getOwnPropertyDescriptor(target, key) || {};
+  if (base.get || base.set) {
+    throw new Error('@Observable may only be used on value properties.');
   }
+  const initialValue = base.value;
+  const descriptor = {
+    configurable: true,
+    enumerable: base.enumerable,
+    get() {
+      return getValue(this, key, initialValue).get();
+    },
+    set(value: any) {
+      getValue(this, key, initialValue).set(value);
+    },
+  };
+  Object.defineProperty(target, key, descriptor);
 };
