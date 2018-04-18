@@ -1,4 +1,5 @@
 import { Autorun, autorun } from '../autorun';
+import { Name } from './Name';
 import { ObservableProxy } from '../ObservableProxy';
 import { transaction } from '../transaction';
 import { untracked } from '../Computation';
@@ -33,17 +34,20 @@ interface ReactComponentClass {
   new(): ReactComponent;
 }
 
+const instanceIdsByClass = new WeakMap<Function, Array<Symbol>>();
+
 export const Observer = (name?: string): ClassDecorator => <T extends Function>(
   constructor: T): T => {
-  const uri = Uri.create(name || constructor.name);
   class type extends (constructor as any as ReactComponentClass) {
+    private readonly uri = Uri.fromClass(this.constructor);
+
     get props() {
       return getState(this).props;
     }
 
     set props(value) {
       const state = getState(this);
-      if (!state.proxified || state.props === undefined) {
+      if (!state.autorun || state.props === undefined) {
         state.props = value;
       } else {
         transaction(() => Object.assign(state.props, value));
@@ -66,13 +70,10 @@ export const Observer = (name?: string): ClassDecorator => <T extends Function>(
       }
       const state = getState(this);
       state.rendering = true;
-      if (!state.proxified) {
-        state.props = ObservableProxy.wrap(
-          uri.extend('props'), { ...state.props });
-        state.proxified = true;
-      }
       if (!state.autorun) {
-        state.autorun = autorun(uri.extend('render').toString(), () => {
+        state.props = ObservableProxy.wrap(
+          this.uri.extend('props'), { ...state.props });
+        state.autorun = autorun(this.uri.extend('render').toString(), () => {
           const result = super.render!();
           if (result !== state.result) {
             state.result = result;
@@ -87,10 +88,11 @@ export const Observer = (name?: string): ClassDecorator => <T extends Function>(
     }
   }
   Object.defineProperty(type, 'name', {
-    value: name,
+    value: constructor.name,
     configurable: true,
     enumerable: false,
     writable: false,
   });
+  Name(name || constructor.name)(type);
   return type as any as T;
 };

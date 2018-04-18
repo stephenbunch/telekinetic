@@ -3,13 +3,13 @@ import { Value } from '../Value';
 
 const valuesByInstance = new WeakMap<any, Map<PropertyKey, Value<any>>>();
 
-function getValue(instance: any, key: PropertyKey, initialValue: any): Value<any> {
+function getValue(instance: object, key: PropertyKey, initialValue: any): Value<any> {
   if (!valuesByInstance.has(instance)) {
     valuesByInstance.set(instance, new Map());
   }
   const valuesByKey = valuesByInstance.get(instance)!;
   if (!valuesByKey.has(key)) {
-    const uri = Uri.create(instance.constructor.name);
+    const uri = Uri.fromClass(instance.constructor);
     valuesByKey.set(key, new Value(uri, initialValue));
   }
   return valuesByKey.get(key)!

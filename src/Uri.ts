@@ -1,3 +1,5 @@
+import { nameSymbol } from './decorators/Name';
+
 export enum UriSegmentKind {
   Name = 1,
   Index = 2,
@@ -32,16 +34,16 @@ export class IndexSegment {
 export class InstanceSegment implements IndexSegment {
   readonly kind = UriSegmentKind.Index
 
-  private readonly instance: Symbol;
-  private readonly instances: Symbol[];
+  private readonly instanceId: Symbol;
+  private readonly instanceIds: Symbol[];
 
-  constructor(instance: Symbol, instances: Symbol[]) {
-    this.instance = instance;
-    this.instances = instances;
+  constructor(instanceId: Symbol, instanceIds: Symbol[]) {
+    this.instanceId = instanceId;
+    this.instanceIds = instanceIds;
   }
 
   get index(): number {
-    return this.instances.indexOf(this.instance);
+    return this.instanceIds.indexOf(this.instanceId);
   }
 
   toString() {
@@ -72,5 +74,13 @@ export class Uri {
         typeof value === 'number' ? new IndexSegment(value) :
           new NameSegment(value)));
 
+  }
+
+  static fromClass(constructor: Function): Uri {
+    return Uri.create((constructor as any)[nameSymbol] || constructor.name);
+  }
+
+  static instance(instance: object): Uri {
+    return Uri.fromClass(instance.constructor);
   }
 }
