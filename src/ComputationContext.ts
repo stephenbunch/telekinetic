@@ -1,12 +1,10 @@
 import { Computation, ComputationClass, RunFunction } from './Computation';
 import { Dependency } from './Dependency';
 import { Disposable, DisposedError } from './Disposable';
+import { Event, EventController } from './Event';
 import { FrozenSet } from './internal/FrozenSet';
 
 const DESTROYED = 'Computation context has been destroyed.';
-
-export type ComputationContextClassEventListener =
-  (context: ComputationContextClass) => void;
 
 export interface ComputationContext {
   readonly isAlive: boolean;
@@ -15,10 +13,10 @@ export interface ComputationContext {
   getTrackedDependencies(): Array<Dependency>;
 }
 
-export class ComputationContextClass implements ComputationContext, Disposable {
-  private dependencies: Map<Dependency,
-    ComputationContextClassEventListener> | null;
-  private disposed = false;
+export class ComputationContextClass implements ComputationContext {
+  private dependencies: Set<Dependency> | null;
+  private destroyed = false;
+  private onDestroyEvent = new EventController<ComputationContextClass>();
 
   readonly name: string;
   computation: Computation | null;
@@ -30,7 +28,7 @@ export class ComputationContextClass implements ComputationContext, Disposable {
     this.name = computation.name;
     this.computation = computation;
     this.stack = stack;
-    this.dependencies = new Map();
+    this.dependencies = new Set();
     this.children = [];
     if (computation.parentContext) {
       const parents = new Set(computation.parentContext.parents!);
@@ -42,14 +40,17 @@ export class ComputationContextClass implements ComputationContext, Disposable {
   }
 
   get isAlive(): boolean {
-    return !this.disposed;
+    return !this.destroyed;
   }
 
-  track(dependency: Dependency,
-    onDestroy: ComputationContextClassEventListener) {
+  get onDestroy(): Event<ComputationContextClass> {
+    return this.onDestroyEvent;
+  }
+
+  track(dependency: Dependency) {
     if (this.isAlive) {
       if (!this.dependencies!.has(dependency)) {
-        this.dependencies!.set(dependency, onDestroy);
+        this.dependencies!.add(dependency);
       }
     } else {
       throw new DisposedError(DESTROYED);
@@ -75,12 +76,10 @@ export class ComputationContextClass implements ComputationContext, Disposable {
     }
   }
 
-  dispose() {
+  destroy() {
     if (this.isAlive) {
-      this.disposed = true;
-      for (const callback of this.dependencies!.values()) {
-        callback(this);
-      }
+      this.destroyed = true;
+      this.onDestroyEvent.trigger(this);
       for (const child of this.children!) {
         child.dispose();
       }
@@ -94,7 +93,7 @@ export class ComputationContextClass implements ComputationContext, Disposable {
 
   getTrackedDependencies(): Array<Dependency> {
     if (this.isAlive) {
-      return Array.from(this.dependencies!.keys());
+      return Array.from(this.dependencies!);
     } else {
       throw new DisposedError(DESTROYED);
     }

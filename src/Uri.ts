@@ -1,4 +1,8 @@
-import { nameSymbol } from './decorators/Name';
+import { getClassName } from './decorators/Name';
+import { getCurrentComputation } from './computation';
+import { ComputationContextClass } from './ComputationContext';
+import { enqueue } from './transaction';
+import { Bound } from './internal/Bound';
 
 export enum UriSegmentKind {
   Name = 1,
@@ -31,33 +35,87 @@ export class IndexSegment {
   }
 }
 
-export class InstanceSegment implements IndexSegment {
-  readonly kind = UriSegmentKind.Index
+const urisByInstance = new WeakMap<object, Uri>();
 
-  private readonly instanceId: Symbol;
-  private readonly instanceIds: Symbol[];
+const instanceCountByClass = new WeakMap<Function, number>();
+const instancesByClass = new WeakMap<Function, Array<any>>();
 
-  constructor(instanceId: Symbol, instanceIds: Symbol[]) {
-    this.instanceId = instanceId;
-    this.instanceIds = instanceIds;
+export class InstanceSegment implements NameSegment {
+  readonly kind = UriSegmentKind.Name
+
+  private readonly instance: object;
+  private readonly className: string;
+  private readonly id: number;
+
+  private isAlive = false;
+  private contexts = new Set<ComputationContextClass>();
+
+  constructor(instance: object) {
+    this.instance = instance;
+    this.className = getClassName(instance.constructor);
+    this.id = instanceCountByClass.get(instance.constructor) || 0;
+    instanceCountByClass.set(instance.constructor, this.id + 1);
   }
 
-  get index(): number {
-    return this.instanceIds.indexOf(this.instanceId);
+  get name(): string {
+    if (this.isAlive) {
+      const instances = instancesByClass.get(this.instance.constructor)!;
+      const index = instances.indexOf(this.instance);
+      return `#${this.className}_${index.toString()}`;
+    } else {
+      return `~${this.className}_${this.id}`;
+    }
+  }
+
+  activate() {
+    const computation = getCurrentComputation();
+    if (computation) {
+      const context = computation.context!;
+      if (!this.contexts.has(context)) {
+        this.contexts.add(context);
+        context.onDestroy.addListener(this.onContextDestroy);
+      }
+      if (!this.isAlive) {
+        this.isAlive = true;
+        if (!instancesByClass.has(this.instance.constructor)) {
+          instancesByClass.set(this.instance.constructor, []);
+        }
+        const instances = instancesByClass.get(this.instance.constructor)!;
+        instances.push(this.instance);
+      }
+    }
   }
 
   toString() {
-    return this.index.toString();
+    return this.name;
+  }
+
+  @Bound()
+  private onContextDestroy(context: ComputationContextClass) {
+    context.onDestroy.removeListener(this.onContextDestroy);
+    this.contexts.delete(context);
+    enqueue(() => {
+      if (this.contexts.size === 0) {
+        if (this.isAlive) {
+          this.isAlive = false;
+          const instances = instancesByClass.get(this.instance.constructor)!;
+          const index = instances.indexOf(this.instance);
+          if (index > -1) {
+            instances.splice(index, 1);
+          }
+        }
+      }
+    });
   }
 }
 
 export type UriSegment = NameSegment | IndexSegment;
 
 export class Uri {
-  readonly segments: UriSegment[];
+  readonly segments: ReadonlyArray<UriSegment>;
 
   constructor(segments: UriSegment[]) {
-    this.segments = segments;
+    this.segments = Object.freeze(segments);
   }
 
   toString() {
@@ -65,8 +123,11 @@ export class Uri {
   }
 
   extend(...segments: Array<string | number>): Uri {
-    return new Uri(this.segments.concat(Uri.create(...segments).segments));
+    const ctor = <typeof Uri>this.constructor;
+    return new ctor(this.segments.concat(Uri.create(...segments).segments));
   }
+
+  activate?(): void;
 
   static create(...segments: Array<string | number>): Uri {
     return new Uri(
@@ -77,10 +138,20 @@ export class Uri {
   }
 
   static fromClass(constructor: Function): Uri {
-    return Uri.create((constructor as any)[nameSymbol] || constructor.name);
+    return Uri.create(getClassName(constructor));
   }
 
   static instance(instance: object): Uri {
-    return Uri.fromClass(instance.constructor);
+    if (!urisByInstance.has(instance)) {
+      urisByInstance.set(instance,
+        new InstanceUri([new InstanceSegment(instance)]));
+    }
+    return urisByInstance.get(instance)!;
+  }
+}
+
+export class InstanceUri extends Uri {
+  activate() {
+    (this.segments[0] as InstanceSegment).activate();
   }
 }

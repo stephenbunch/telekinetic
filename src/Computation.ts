@@ -68,7 +68,7 @@ export class ComputationClass<T> implements Computation {
     if (!this.disposed) {
       this.disposed = true;
       if (this.context) {
-        this.context.dispose();
+        this.context.destroy();
         this.context = null;
       }
       this.parentContext = null;
@@ -135,7 +135,7 @@ export class ComputationClass<T> implements Computation {
     try {
       const stack = new FrozenSet(computationStack);
       if (this.context) {
-        this.context.dispose();
+        this.context.destroy();
       }
       this.context = new ComputationContextClass(this, stack);
       return this.func(this.context);

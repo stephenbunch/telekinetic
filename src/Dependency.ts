@@ -23,6 +23,7 @@ export class Dependency {
 
   @Bound()
   private onContextDestroy(context: ComputationContextClass) {
+    context.onDestroy.removeListener(this.onContextDestroy);
     this.contexts.delete(context);
     this.checkIsCold();
   }
@@ -38,14 +39,17 @@ export class Dependency {
   depend(): void {
     const computation = getCurrentComputation();
     if (computation && computation.isAlive) {
-      Logger.current.trace(
-        () => [`${computation.name} depends on ${this.uri}.`]);
       const context = computation.context!;
-      context.track(this, this.onContextDestroy);
-      this.contexts.add(context);
-      if (!this.isHot) {
-        this.isHot = true;
-        this.onHotEvent.trigger(undefined);
+      if (!this.contexts.has(context)) {
+        this.contexts.add(context);
+        Logger.current.trace(
+          () => [`${computation.name} depends on ${this.uri}.`]);
+        context.track(this);
+        context.onDestroy.addListener(this.onContextDestroy);
+        if (!this.isHot) {
+          this.isHot = true;
+          this.onHotEvent.trigger(undefined);
+        }
       }
     }
   }
