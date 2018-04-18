@@ -1,12 +1,12 @@
 import { Dependency } from './Dependency';
-import { Name } from './Name';
+import { Uri } from './Uri';
 
 export class ObservableSet<T> implements Set<T> {
   private set: Set<T>;
   private dependency: Dependency;
 
-  constructor(name: Name, values?: Iterable<T>) {
-    this.dependency = new Dependency(name);
+  constructor(uri: Uri, values?: Iterable<T>) {
+    this.dependency = new Dependency(uri);
     if (values) {
       this.set = new Set(values);
     } else {

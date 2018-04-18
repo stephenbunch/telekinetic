@@ -3,10 +3,10 @@ import { Collection } from './Collection';
 import { CollectionObserver } from './CollectionObserver';
 import { Computed } from './decorators/Computed';
 import { ComputedMap } from './ComputedMap';
-import { Name } from './Name';
 import { ObservableMap } from './ObservableMap';
 import { ObservableSet } from './ObservableSet';
 import { Observer } from './decorators/Observer';
+import { Uri } from './Uri';
 import * as React from 'react';
 
 type ItemRenderer<TItem> = (item: TItem) => React.ReactNode;
@@ -22,7 +22,7 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 
-  private readonly name = Name.of(this.constructor.name);
+  private readonly uri = Uri.create(this.constructor.name);
 
   @Computed()
   private get observer(): CollectionObserver<TKey, TItem> {
@@ -35,7 +35,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   @Computed()
   private get keys(): ObservableSet<TKey> {
     return new ObservableSet(
-      this.name.add('keys'), this.observer.collection.keys());
+      this.uri.extend('keys'), this.observer.collection.keys());
   }
 
   /**
@@ -45,7 +45,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   private get sortKeys(): ComputedMap<TKey, TItem, TSortKey> | null {
     if (this.props.sort) {
       return new ComputedMap<TKey, TItem, TSortKey>(
-        this.name.add('sortKeys'),
+        this.uri.extend('sortKeys'),
         this.getSortKeySelector(this.props.sort),
         Array.from(this.observer.collection)
       );
@@ -56,7 +56,7 @@ export class CollectionBrush<TKey, TItem, TSortKey = any>
   @Computed()
   private get renderedItems(): ComputedMap<TKey, TItem, React.ReactNode> {
     return new ComputedMap<TKey, TItem, React.ReactNode>(
-      this.name.add('renderedItems'),
+      this.uri.extend('renderedItems'),
       this.getItemRenderer(this.props.render),
       Array.from(this.observer.collection)
     );

@@ -1,6 +1,6 @@
-import { Name } from './Name';
+import { Uri } from './Uri';
 
 export interface Input<T> {
-  readonly name: Name;
+  readonly uri: Uri;
   get(): T;
 }

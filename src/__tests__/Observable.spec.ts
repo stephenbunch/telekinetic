@@ -1,4 +1,3 @@
-import { Name } from '../Name';
 import { Observable } from '../decorators/Observable';
 import { observe } from '../rxjs/observe';
 
@@ -10,7 +9,7 @@ describe('Observable', () => {
     }
     const obj = new Test();
     let result = 0;
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       result = obj.foo;
     }).subscribe();
     obj.foo = 3;
@@ -24,7 +23,7 @@ describe('Observable', () => {
       static bar = 2;
     }
     let result = 0;
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       result = Test.bar;
     }).subscribe();
     Test.bar = 3;

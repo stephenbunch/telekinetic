@@ -1,11 +1,11 @@
 import { Bound } from './internal/Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
-import { Name } from './Name';
 import { Store } from './redux/Store';
+import { Uri } from './Uri';
 
 export class Value<T> implements Input<T> {
-  readonly name: Name;
+  readonly uri: Uri;
 
   private readonly dependency: Dependency;
   private value: T;
@@ -13,10 +13,10 @@ export class Value<T> implements Input<T> {
 
   static store: Store | undefined;
 
-  constructor(name: Name, initialValue: T) {
-    this.name = name;
+  constructor(uri: Uri, initialValue: T) {
+    this.uri = uri;
     this.value = initialValue;
-    this.dependency = new Dependency(name);
+    this.dependency = new Dependency(uri);
     this.dependency.onHot.addListener(this.onHot);
     this.dependency.onCold.addListener(this.onCold);
   }

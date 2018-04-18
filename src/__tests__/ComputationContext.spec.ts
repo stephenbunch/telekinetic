@@ -1,15 +1,15 @@
 import { AsyncObserver } from './utils/AsyncObserver';
 import { Dependency } from '../Dependency';
 import { DisposedError } from '../Disposable';
-import { Name } from '../Name';
 import { observe, observeAsync } from '../rxjs/observe';
+import { Uri } from '../Uri';
 
 describe('fork', () => {
   it('should not run if the parent has been disposed', () => {
-    const dep = new Dependency(Name.of('dep'));
+    const dep = new Dependency(Uri.create('dep'));
     let count = 0;
-    const sub = observe(Name.of('main'), (ctx) => {
-      ctx.fork(Name.of('sub'), () => {
+    const sub = observe('main', (ctx) => {
+      ctx.fork('sub', () => {
         dep.depend();
         count += 1;
       });
@@ -21,8 +21,8 @@ describe('fork', () => {
 
   it('should forward the return value', () => {
     let result: number | undefined;
-    const sub = observe(Name.of('main'), (ctx) => {
-      result = ctx.fork(Name.of('sub'), () => 2);
+    const sub = observe('main', (ctx) => {
+      result = ctx.fork('sub', () => 2);
     }).subscribe();
     expect(result).toBe(2);
     sub.unsubscribe();
@@ -31,12 +31,12 @@ describe('fork', () => {
 
 describe('continue', () => {
   it('should continue inside the computation', async () => {
-    const dep1 = new Dependency(Name.of('dep1'));
-    const dep2 = new Dependency(Name.of('dep2'));
+    const dep1 = new Dependency(Uri.create('dep1'));
+    const dep2 = new Dependency(Uri.create('dep2'));
     let called = 0;
     let obs = new AsyncObserver();
 
-    const sub = observeAsync(Name.of('main'), async (ctx) => {
+    const sub = observeAsync('main', async (ctx) => {
       dep1.depend();
       await Promise.resolve();
       ctx.continue(() => {
@@ -60,12 +60,12 @@ describe('continue', () => {
   });
 
   it('should not run if the computation has been rerun', async () => {
-    const dep = new Dependency(Name.of('dep'));
+    const dep = new Dependency(Uri.create('dep'));
     let called = 0;
     let nextCalled = 0;
     let obs = new AsyncObserver();
 
-    const sub = observeAsync(Name.of('main'), async (ctx) => {
+    const sub = observeAsync('main', async (ctx) => {
       dep.depend();
       called += 1;
       await Promise.resolve();
@@ -92,7 +92,7 @@ describe('continue', () => {
 
   it('should forward the return value', () => {
     let result: number | undefined;
-    const sub = observe(Name.of('main'), (ctx) => {
+    const sub = observe('main', (ctx) => {
       result = ctx.continue(() => 2);
     }).subscribe();
     sub.unsubscribe();

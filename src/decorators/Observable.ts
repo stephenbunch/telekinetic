@@ -1,5 +1,5 @@
 import { KeyedDependency } from '../internal/KeyedDependency';
-import { Name } from '../Name';
+import { Uri } from '../Uri';
 
 const STATE = Symbol('STATE');
 
@@ -12,8 +12,8 @@ class ObservableState {
   dependencies: KeyedDependency;
   values = new Map<PropertyKey, any>();
 
-  constructor(name: Name) {
-    this.dependencies = new KeyedDependency(name);
+  constructor(uri: Uri) {
+    this.dependencies = new KeyedDependency(uri);
   }
 }
 
@@ -24,9 +24,9 @@ class ObservableHost {
 function getState(obj: ObservableHost): ObservableState {
   if (!obj[STATE]) {
     if (obj.constructor) {
-      obj[STATE] = new ObservableState(Name.of(obj.constructor.name));
+      obj[STATE] = new ObservableState(Uri.create(obj.constructor.name));
     } else {
-      obj[STATE] = new ObservableState(Name.of('$$object'));
+      obj[STATE] = new ObservableState(Uri.create('$$object'));
     }
   }
   return obj[STATE]!;

@@ -1,17 +1,17 @@
 import { AsyncObserver } from './utils/AsyncObserver';
 import { ComputedValue } from '../ComputedValue';
-import { Name } from '../Name';
 import { observe, observeAsync } from '../rxjs/observe';
 import { transaction } from '../transaction';
 import { Value } from '../Value';
+import { Uri } from '../Uri';
 
 it('should cache computed values', () => {
-  const val1 = new Value(Name.of('val1'), 'foo');
-  const val2 = new Value(Name.of('val2'), 'bar');
+  const val1 = new Value(Uri.create('val1'), 'foo');
+  const val2 = new Value(Uri.create('val2'), 'bar');
   const comp = jest.fn(() => val1.get() + val2.get());
-  const val3 = new ComputedValue(Name.of('val3'), comp);
+  const val3 = new ComputedValue(Uri.create('val3'), comp);
   const next1 = jest.fn();
-  const sub1 = observe(Name.of('main'), () => {
+  const sub1 = observe('main', () => {
     val3.get();
     return val3.get();
   }).subscribe(next1);

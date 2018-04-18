@@ -3,8 +3,8 @@ import { Bound } from './internal/Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Logger } from './Logger';
-import { Name } from './Name';
 import { transaction } from './transaction';
+import { Uri } from './Uri';
 
 function dispose(value: any) {
   if (value && typeof value.dispose === 'function') {
@@ -13,7 +13,7 @@ function dispose(value: any) {
 }
 
 export class ComputedValue<T> implements Input<T> {
-  readonly name: Name;
+  readonly uri: Uri;
 
   private readonly producer: () => T;
   private readonly dependency: Dependency;
@@ -21,10 +21,10 @@ export class ComputedValue<T> implements Input<T> {
   private autorun: Autorun | undefined;
   private value: T | undefined;
 
-  constructor(name: Name, producer: () => T) {
-    this.name = name;
+  constructor(uri: Uri, producer: () => T) {
+    this.uri = uri;
     this.producer = producer;
-    this.dependency = new Dependency(name);
+    this.dependency = new Dependency(uri);
     this.dependency.onHot.addListener(this.onHot);
     this.dependency.onCold.addListener(this.onCold);
   }
@@ -40,11 +40,11 @@ export class ComputedValue<T> implements Input<T> {
   @Bound()
   private onHot() {
     let firstRun = true;
-    this.autorun = autorun(this.name, (context) => {
+    this.autorun = autorun(this.uri.toString(), (context) => {
       const value = transaction(() => this.producer());
       Logger.current.trace(() => [
-        `Tracked dependencies for ${this.name}:`,
-        context.getTrackedDependencies().map((dep) => dep.name.toString()),
+        `Tracked dependencies for ${this.uri}:`,
+        context.getTrackedDependencies().map((dep) => dep.uri.toString()),
       ]);
       if (firstRun) {
         firstRun = false;

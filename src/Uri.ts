@@ -62,6 +62,10 @@ export class Uri {
     return this.segments.join('.');
   }
 
+  extend(...segments: Array<string | number>): Uri {
+    return new Uri(this.segments.concat(Uri.create(...segments).segments));
+  }
+
   static create(...segments: Array<string | number>): Uri {
     return new Uri(
       segments.map((value) =>

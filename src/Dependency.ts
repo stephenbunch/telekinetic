@@ -4,21 +4,21 @@ import { enqueue } from './transaction';
 import { Event, EventController } from './Event';
 import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
-import { Name } from './Name';
 import { OrderedSet } from './internal/OrderedSet';
+import { Uri } from './Uri';
 
 export class CircularDependencyError extends Error { }
 
 export class Dependency {
-  readonly name: Name;
+  readonly uri: Uri;
 
   private contexts = new OrderedSet<ComputationContextClass>();
   private readonly onHotEvent = new EventController();
   private readonly onColdEvent = new EventController();
   private isHot = false;
 
-  constructor(name: Name) {
-    this.name = name;
+  constructor(uri: Uri) {
+    this.uri = uri;
   }
 
   @Bound()
@@ -39,7 +39,7 @@ export class Dependency {
     const computation = getCurrentComputation();
     if (computation && computation.isAlive) {
       Logger.current.trace(
-        () => [`${computation.name} depends on ${this.name}.`]);
+        () => [`${computation.name} depends on ${this.uri}.`]);
       const context = computation.context!;
       context.track(this, this.onContextDestroy);
       this.contexts.add(context);
@@ -52,7 +52,7 @@ export class Dependency {
 
   changed(): void {
     if (this.isHot) {
-      Logger.current.trace(() => [`${this.name} changed.`]);
+      Logger.current.trace(() => [`${this.uri} changed.`]);
       const contexts = this.contexts;
       this.contexts = new OrderedSet<ComputationContextClass>();
       const current = getCurrentComputation();
@@ -60,7 +60,7 @@ export class Dependency {
         if (context.isAlive) {
           if (context.parents!.has(current!)) {
             throw new CircularDependencyError(
-              `${this.name} was changed in autorun ` +
+              `${this.uri} was changed in autorun ` +
               `${current!.name} after being depended on.`
             );
           }
@@ -72,7 +72,7 @@ export class Dependency {
             // in this autorun.
             if (err instanceof ReentrancyError) {
               throw new CircularDependencyError(
-                `Changing ${this.name} caused another autorun to rerun ` +
+                `Changing ${this.uri} caused another autorun to rerun ` +
                 `which caused another change to this value.`
               );
             } else {

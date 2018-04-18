@@ -1,13 +1,13 @@
-import { Name } from '../Name';
 import { ObservableMap } from '../ObservableMap';
 import { observe } from '../rxjs/observe';
+import { Uri } from '../Uri';
 
 describe('ObservableMap', () => {
   it('should track a dependency when getting the size', () => {
-    const map = new ObservableMap<number, string>(Name.of('map'));
+    const map = new ObservableMap<number, string>(Uri.create('map'));
     let size = null;
     let called = 0;
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       called += 1;
       size = map.size;
     }).subscribe();
@@ -22,10 +22,10 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting a value', () => {
-    const map = new ObservableMap<string, string>(Name.of('map'));
+    const map = new ObservableMap<string, string>(Uri.create('map'));
     let called = 0;
     let value = null;
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       called += 1;
       value = map.get('foo');
     }).subscribe();
@@ -39,9 +39,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the keys', () => {
-    const map = new ObservableMap<string, number>(Name.of('map'));
+    const map = new ObservableMap<string, number>(Uri.create('map'));
     const output: Array<Array<string>> = [];
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.keys()));
     }).subscribe();
     map.set('foo', 2);
@@ -59,9 +59,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the values', () => {
-    const map = new ObservableMap<string, number>(Name.of('map'));
+    const map = new ObservableMap<string, number>(Uri.create('map'));
     const output: Array<Array<number>> = [];
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.values()));
     }).subscribe();
     map.set('foo', 2);
@@ -79,9 +79,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the entries', () => {
-    const map = new ObservableMap<string, number>(Name.of('map'));
+    const map = new ObservableMap<string, number>(Uri.create('map'));
     const output: Array<Array<[string, number]>> = [];
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map.entries()));
     }).subscribe();
     map.set('foo', 2);
@@ -99,9 +99,9 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when getting the iterator', () => {
-    const map = new ObservableMap<string, number>(Name.of('map'));
+    const map = new ObservableMap<string, number>(Uri.create('map'));
     const output: Array<Array<[string, number]>> = [];
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       output.push(Array.from(map[Symbol.iterator]()));
     }).subscribe();
     map.set('foo', 2);
@@ -119,10 +119,10 @@ describe('ObservableMap', () => {
   });
 
   it('should track a dependency when determining whether a key exists', () => {
-    const map = new ObservableMap<string, number>(Name.of('map'));
+    const map = new ObservableMap<string, number>(Uri.create('map'));
     let has = null;
     let called = 0;
-    const sub = observe(Name.of('main'), () => {
+    const sub = observe('main', () => {
       called += 1;
       has = map.has('foo');
     }).subscribe();

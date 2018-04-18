@@ -6,7 +6,6 @@ import {
 import { DisposedError } from './Disposable';
 import { FrozenSet } from './internal/FrozenSet';
 import { Logger } from './Logger';
-import { Name } from './Name';
 import { OrderedSet } from './internal/OrderedSet';
 import { transaction, enqueue } from './transaction';
 
@@ -20,14 +19,11 @@ export class ComputationError extends Error { }
 export class ReentrancyError extends Error { }
 
 export interface Computation extends Autorun {
-  readonly name: Name;
+  readonly name: string;
   readonly isAlive: boolean;
   readonly context: ComputationContextClass | null;
   readonly parentContext: ComputationContextClass | null;
   continue<R>(callback: () => R): R;
-  spawn<R>(name: Name, runFunc: RunFunction<R>): Computation;
-  spawnAsync<R>(name: Name,
-    runFunc: RunFunction<Promise<R>>): Promise<Computation>;
   rerun(): void;
   dispose(): void;
 }
@@ -53,11 +49,11 @@ export class ComputationClass<T> implements Computation {
   private disposed = false;
   private children: Computation[] = [];
 
-  readonly name: Name;
+  readonly name: string;
   context: ComputationContextClass | null = null;
   parentContext: ComputationContextClass | null;
 
-  constructor(name: Name, runFunc: RunFunction<T>,
+  constructor(name: string, runFunc: RunFunction<T>,
     parentContext: ComputationContextClass | null = null) {
     this.name = name;
     this.func = runFunc;
@@ -120,21 +116,6 @@ export class ComputationClass<T> implements Computation {
       currentComputation = current;
       computationStack = currentStack;
     }
-  }
-
-  spawn<R>(name: Name, runFunc: RunFunction<R>): ComputationClass<R> {
-    const comp = new ComputationClass(name, runFunc);
-    this.children.push(comp);
-    comp.run();
-    return comp;
-  }
-
-  async spawnAsync<R>(name: Name,
-    runFunc: RunFunction<Promise<R>>): Promise<ComputationClass<Promise<R>>> {
-    const comp = new ComputationClass(name, runFunc);
-    this.children.push(comp);
-    await comp.run();
-    return comp;
   }
 
   private exec(): T {

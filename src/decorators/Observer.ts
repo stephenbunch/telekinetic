@@ -1,8 +1,8 @@
 import { Autorun, autorun } from '../autorun';
-import { Name } from '../Name';
 import { ObservableProxy } from '../ObservableProxy';
 import { transaction } from '../transaction';
 import { untracked } from '../Computation';
+import { Uri } from '../Uri';
 
 class ObserverState {
   props: any;
@@ -33,9 +33,9 @@ interface ReactComponentClass {
   new(): ReactComponent;
 }
 
-export const Observer = (): ClassDecorator => <T extends Function>(
+export const Observer = (name?: string): ClassDecorator => <T extends Function>(
   constructor: T): T => {
-  const name = Name.of(constructor.name);
+  const uri = Uri.create(name || constructor.name);
   class type extends (constructor as any as ReactComponentClass) {
     get props() {
       return getState(this).props;
@@ -68,11 +68,11 @@ export const Observer = (): ClassDecorator => <T extends Function>(
       state.rendering = true;
       if (!state.proxified) {
         state.props = ObservableProxy.wrap(
-          name.add('props'), { ...state.props });
+          uri.extend('props'), { ...state.props });
         state.proxified = true;
       }
       if (!state.autorun) {
-        state.autorun = autorun(name.add('render'), () => {
+        state.autorun = autorun(uri.extend('render').toString(), () => {
           const result = super.render!();
           if (result !== state.result) {
             state.result = result;
