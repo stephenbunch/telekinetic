@@ -1,5 +1,5 @@
 import { getClassName } from './decorators/Name';
-import { getCurrentComputation } from './computation';
+import { getCurrentComputation } from './Computation';
 import { ComputationContextClass } from './ComputationContext';
 import { enqueue } from './transaction';
 import { Bound } from './internal/Bound';
@@ -35,7 +35,7 @@ export class IndexSegment {
   }
 }
 
-const urisByInstance = new WeakMap<object, Uri>();
+const urisByInstance = new WeakMap<object, InstanceUri>();
 
 const instanceCountByClass = new WeakMap<Function, number>();
 const instancesByClass = new WeakMap<Function, Array<any>>();
@@ -63,7 +63,7 @@ export class InstanceSegment implements NameSegment {
       const index = instances.indexOf(this.instance);
       return `#${this.className}_${index.toString()}`;
     } else {
-      return `~${this.className}_${this.id}`;
+      return `!${this.className}_${this.id}`;
     }
   }
 
@@ -141,7 +141,7 @@ export class Uri {
     return Uri.create(getClassName(constructor));
   }
 
-  static instance(instance: object): Uri {
+  static instance(instance: object): InstanceUri {
     if (!urisByInstance.has(instance)) {
       urisByInstance.set(instance,
         new InstanceUri([new InstanceSegment(instance)]));
