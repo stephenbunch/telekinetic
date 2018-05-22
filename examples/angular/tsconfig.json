@@ -1,6 +1,6 @@
 {
   "compilerOptions": {
-    "outDir": "./dist",
+    "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "lib": [
       "es6",
@@ -9,11 +9,12 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "noImplicitReturns": true,
+    "outDir": "./dist",
     "preserveConstEnums": true,
     "removeComments": true,
     "sourceMap": true,
     "strict": true,
-    "target": "es5"
+    "target": "es6",
   },
   "include": [
     "src/**/*"
