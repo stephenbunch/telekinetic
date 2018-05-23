@@ -1,4 +1,4 @@
-import { Bound } from './internal/Bound';
+import { _Bound } from './decorators/_Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Store } from './redux/Store';
@@ -34,12 +34,12 @@ export class Value<T> implements Input<T> {
     }
   }
 
-  @Bound()
+  @_Bound()
   private onHot() {
     this.store = Value.store;
   }
 
-  @Bound()
+  @_Bound()
   private onCold() {
     this.store = undefined;
   }

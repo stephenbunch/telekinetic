@@ -1,5 +1,5 @@
 import { autorun, Autorun } from './autorun';
-import { Bound } from './internal/Bound';
+import { _Bound } from './decorators/_Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
 import { Logger } from './Logger';
@@ -37,7 +37,7 @@ export class ComputedValue<T> implements Input<T> {
     return this.producer();
   }
 
-  @Bound()
+  @_Bound()
   private onHot() {
     let firstRun = true;
     this.autorun = autorun(this.uri.toString(), (context) => {
@@ -57,7 +57,7 @@ export class ComputedValue<T> implements Input<T> {
     });
   }
 
-  @Bound()
+  @_Bound()
   private onCold() {
     this.autorun!.dispose();
     this.autorun = undefined;

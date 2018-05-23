@@ -1,4 +1,4 @@
-export class OrderedSet<T> implements Iterable<T> {
+export class _OrderedSet<T> implements Iterable<T> {
   private itemSet: Set<T>;
   private items: Array<T>;
 
@@ -48,8 +48,8 @@ export class OrderedSet<T> implements Iterable<T> {
     }
   }
 
-  clone(): OrderedSet<T> {
-    const set = new OrderedSet<T>();
+  clone(): _OrderedSet<T> {
+    const set = new _OrderedSet<T>();
     set.itemSet = new Set(this.itemSet);
     set.items = this.items.slice();
     return set;

@@ -1,10 +1,10 @@
-import { Bound } from './internal/Bound';
+import { _Bound } from './decorators/_Bound';
 import { ComputationContextClass } from './ComputationContext';
 import { enqueue } from './transaction';
 import { Event, EventController } from './Event';
 import { getCurrentComputation, ReentrancyError } from './Computation';
 import { Logger } from './Logger';
-import { OrderedSet } from './internal/OrderedSet';
+import { _OrderedSet } from './_OrderedSet';
 import { Uri } from './Uri';
 
 export class CircularDependencyError extends Error { }
@@ -12,7 +12,7 @@ export class CircularDependencyError extends Error { }
 export class Dependency {
   readonly uri: Uri;
 
-  private contexts = new OrderedSet<ComputationContextClass>();
+  private contexts = new _OrderedSet<ComputationContextClass>();
   private readonly onHotEvent = new EventController();
   private readonly onColdEvent = new EventController();
   private isHot = false;
@@ -21,7 +21,7 @@ export class Dependency {
     this.uri = uri;
   }
 
-  @Bound()
+  @_Bound()
   private onContextDestroy(context: ComputationContextClass) {
     context.onDestroy.removeListener(this.onContextDestroy);
     this.contexts.delete(context);
@@ -58,7 +58,7 @@ export class Dependency {
     if (this.isHot) {
       Logger.current.trace(() => [`${this.uri} changed.`]);
       const contexts = this.contexts;
-      this.contexts = new OrderedSet<ComputationContextClass>();
+      this.contexts = new _OrderedSet<ComputationContextClass>();
       const current = getCurrentComputation();
       for (const context of contexts) {
         if (context.isAlive) {

@@ -2,7 +2,7 @@ import { getClassName } from './decorators/Name';
 import { getCurrentComputation } from './Computation';
 import { ComputationContextClass } from './ComputationContext';
 import { enqueue } from './transaction';
-import { Bound } from './internal/Bound';
+import { _Bound } from './decorators/_Bound';
 
 export enum UriSegmentKind {
   Name = 1,
@@ -90,7 +90,7 @@ export class InstanceSegment implements NameSegment {
     return this.name;
   }
 
-  @Bound()
+  @_Bound()
   private onContextDestroy(context: ComputationContextClass) {
     context.onDestroy.removeListener(this.onContextDestroy);
     this.contexts.delete(context);

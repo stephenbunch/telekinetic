@@ -1,5 +1,5 @@
-import { Observer, NextObserver, ErrorObserver } from 'rxjs/Observer';
-import { Bound } from '../../internal/Bound';
+import { Observer, NextObserver, ErrorObserver } from 'rxjs';
+import { _Bound } from '../../decorators/_Bound';
 import { Deferred } from './Deferred';
 
 export class AsyncObserver<T = void>
@@ -10,13 +10,13 @@ export class AsyncObserver<T = void>
     return this.def.promise;
   }
 
-  @Bound()
+  @_Bound()
   next(value: T) {
     this.def.resolve(value);
     this.def = new Deferred<T>();
   }
 
-  @Bound()
+  @_Bound()
   error(error: Error) {
     this.def.reject(error);
     this.def = new Deferred<T>();

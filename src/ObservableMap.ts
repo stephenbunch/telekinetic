@@ -1,5 +1,5 @@
 import { Dependency } from './Dependency';
-import { KeyedDependency } from './internal/KeyedDependency';
+import { _KeyedDependency } from './_KeyedDependency';
 import { transaction } from './transaction';
 import { Uri } from './Uri';
 
@@ -7,7 +7,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
   private map: Map<K, V>;
   private keysDependency: Dependency;
   private valuesDependency: Dependency;
-  private dependencies: KeyedDependency;
+  private dependencies: _KeyedDependency;
 
   static fromJS<K, V>(uri: Uri, map: Map<K, V>): ObservableMap<K, V> {
     return new ObservableMap<K, V>(uri, Array.from(map.entries()));
@@ -20,7 +20,7 @@ export class ObservableMap<K, V> implements Map<K, V> {
   constructor(uri: Uri, entries?: ReadonlyArray<[K, V]>) {
     this.keysDependency = new Dependency(uri.extend('$$keys'));
     this.valuesDependency = new Dependency(uri.extend('$$values'));
-    this.dependencies = new KeyedDependency(uri);
+    this.dependencies = new _KeyedDependency(uri);
     this.map = new Map(entries);
   }
 

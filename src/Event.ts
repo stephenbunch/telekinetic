@@ -1,4 +1,4 @@
-import { OrderedSet } from './internal/OrderedSet';
+import { _OrderedSet } from './_OrderedSet';
 
 export type EventListener<T> = (eventArgs: T) => void;
 
@@ -8,7 +8,7 @@ export interface Event<T = undefined> {
 }
 
 export class EventController<T = undefined> implements Event<T> {
-  private listeners = new OrderedSet<EventListener<T>>();
+  private listeners = new _OrderedSet<EventListener<T>>();
 
   addListener(listener: EventListener<T>) {
     this.listeners.add(listener);

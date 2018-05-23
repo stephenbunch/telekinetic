@@ -1,6 +1,6 @@
 import { Computed } from './decorators/Computed';
 import { Observable } from './decorators/Observable';
-import { OrderedSet } from './internal/OrderedSet';
+import { _OrderedSet } from './_OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 import { Action } from './decorators/Action';
 
@@ -96,8 +96,8 @@ class StateLiteral implements StateValue {
 class StateObject implements StateValue {
   readonly owner: State;
 
-  private readonly children = new OrderedSet<State>();
-  private readonly keys = new OrderedSet<string>();
+  private readonly children = new _OrderedSet<State>();
+  private readonly keys = new _OrderedSet<string>();
 
   constructor(owner: State) {
     this.owner = owner;
@@ -145,7 +145,7 @@ class StateObject implements StateValue {
 class StateArray implements StateValue {
   readonly owner: State;
 
-  private readonly children = new OrderedSet<State>();
+  private readonly children = new _OrderedSet<State>();
 
   constructor(owner: State) {
     this.owner = owner;

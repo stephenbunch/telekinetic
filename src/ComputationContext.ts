@@ -2,7 +2,7 @@ import { Computation, ComputationClass, RunFunction } from './Computation';
 import { Dependency } from './Dependency';
 import { Disposable, DisposedError } from './Disposable';
 import { Event, EventController } from './Event';
-import { FrozenSet } from './internal/FrozenSet';
+import { _FrozenSet } from './_FrozenSet';
 
 const DESTROYED = 'Computation context has been destroyed.';
 
@@ -20,11 +20,11 @@ export class ComputationContextClass implements ComputationContext {
 
   readonly name: string;
   computation: Computation | null;
-  parents: FrozenSet<Computation> | null;
-  stack: FrozenSet<Computation> | null;
+  parents: _FrozenSet<Computation> | null;
+  stack: _FrozenSet<Computation> | null;
   children: Array<Computation> | null;
 
-  constructor(computation: Computation, stack: FrozenSet<Computation>) {
+  constructor(computation: Computation, stack: _FrozenSet<Computation>) {
     this.name = computation.name;
     this.computation = computation;
     this.stack = stack;
@@ -33,9 +33,9 @@ export class ComputationContextClass implements ComputationContext {
     if (computation.parentContext) {
       const parents = new Set(computation.parentContext.parents!);
       parents.add(computation.parentContext.computation!);
-      this.parents = new FrozenSet(parents);
+      this.parents = new _FrozenSet(parents);
     } else {
-      this.parents = new FrozenSet();
+      this.parents = new _FrozenSet();
     }
   }
 

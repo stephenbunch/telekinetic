@@ -4,9 +4,9 @@ import {
   ComputationContextClass,
 } from './ComputationContext';
 import { DisposedError } from './Disposable';
-import { FrozenSet } from './internal/FrozenSet';
+import { _FrozenSet } from './_FrozenSet';
 import { Logger } from './Logger';
-import { OrderedSet } from './internal/OrderedSet';
+import { _OrderedSet } from './_OrderedSet';
 import { transaction, enqueue } from './transaction';
 
 let currentComputation: Computation | null = null;
@@ -133,7 +133,7 @@ export class ComputationClass<T> implements Computation {
     const current = currentComputation;
     currentComputation = this;
     try {
-      const stack = new FrozenSet(computationStack);
+      const stack = new _FrozenSet(computationStack);
       if (this.context) {
         this.context.destroy();
       }

@@ -1,7 +1,7 @@
-import { Dependency } from '../Dependency';
-import { Uri } from '../Uri';
+import { Dependency } from './Dependency';
+import { Uri } from './Uri';
 
-export class KeyedDependency {
+export class _KeyedDependency {
   private dependencies = new Map<any, Dependency>();
   readonly uri: Uri;
 

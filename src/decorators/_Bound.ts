@@ -6,7 +6,7 @@ interface Host {
   [__cache]: Map<PropertyKey, AnyFunction>;
 }
 
-export const Bound = () => (target: any, key: PropertyKey,
+export const _Bound = () => (target: any, key: PropertyKey,
   descriptor: PropertyDescriptor): PropertyDescriptor => {
   const func = target[key] as AnyFunction;
   return {

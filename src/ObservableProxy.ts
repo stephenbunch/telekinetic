@@ -1,11 +1,11 @@
-import { KeyedDependency } from './internal/KeyedDependency';
+import { _KeyedDependency } from './_KeyedDependency';
 import { Uri } from './Uri';
 
 class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
-  private dependencies: KeyedDependency;
+  private dependencies: _KeyedDependency;
 
   constructor(uri: Uri) {
-    this.dependencies = new KeyedDependency(uri);
+    this.dependencies = new _KeyedDependency(uri);
   }
 
   get(target: T, key: PropertyKey, receiver: any): any {

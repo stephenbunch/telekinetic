@@ -1,4 +1,4 @@
-export class FrozenSet<T> implements Set<T> {
+export class _FrozenSet<T> implements Set<T> {
   private readonly set: Set<T>;
 
   constructor(values?: Iterable<T>) {
