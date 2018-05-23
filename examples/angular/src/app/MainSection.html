@@ -1,0 +1,16 @@
+<section class="main">
+  <span *ngIf="todosCount > 0">
+    <input
+      class="toggle-all"
+      type="checkbox"
+      [checked]="completedCount == todosCount"
+    />
+    <label (click)="todoService.completeAllTodos()"></label>
+  </span>
+  <TodoList></TodoList>
+  <Footer *ngIf="todosCount > 0"
+    [completedCount]="completedCount"
+    [activeCount]="todosCount - completedCount"
+    (clearCompleted)="todoService.clearCompleted()"
+  ></Footer>
+</section>

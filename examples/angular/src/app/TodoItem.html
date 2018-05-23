@@ -1,0 +1,18 @@
+<ng-template [ngIf]="todo != null">
+  <TodoTextInput
+    *ngIf="isEditing"
+    [text]="todo.text"
+    [mode]="editMode"
+    (save)="save($event)"></TodoTextInput>
+  <div *ngIf="!isEditing" class="view">
+    <input
+      class="toggle"
+      type="checkbox"
+      [checked]="todo.completed"
+      (change)="complete()" />
+    <label (dblclick)="isEditing = true">
+      {{todo.text}}
+    </label>
+    <button class="destroy" (click)="delete()"></button>
+  </div>
+</ng-template>

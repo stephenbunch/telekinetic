@@ -1,0 +1,8 @@
+<header class="header">
+  <h1>todos</h1>
+  <TodoTextInput
+    [mode]="inputMode"
+    (save)="todoService.addTodo($event)"
+    placeholder="What needs to be done?"
+  ></TodoTextInput>
+</header>

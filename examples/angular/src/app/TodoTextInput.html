@@ -1,0 +1,10 @@
+<input
+  [class.edit]="isEditMode"
+  [class.new-todo]="isNewMode"
+  type="text"
+  [placeholder]="placeholder"
+  autofocus
+  [(ngModel)]="text"
+  (blur)="onBlur()"
+  (keydown.enter)="submit()"
+/>

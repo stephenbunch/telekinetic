@@ -1,0 +1,17 @@
+<footer class="footer">
+  <span class="todo-count">
+    <strong>{{activeCount || 'No'}}</strong>
+    {{activeCount === 1 ? 'item' : 'items'}} left
+  </span>
+  <ul class="filters">
+    <li *ngFor="let filter of todoFilters">
+      <FilterLink [filter]="filter">{{filter}}</FilterLink>
+    </li>
+  </ul>
+  <button
+    *ngIf="completedCount > 0"
+    class="clear-completed"
+    (click)="onClearCompleted()">
+    Clear completed
+  </button>
+</footer>

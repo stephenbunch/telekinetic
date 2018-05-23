@@ -1,5 +1,5 @@
 import { autorun } from '../autorun';
-import { Observable } from 'rxjs/Observable';
+import { Observable } from 'rxjs';
 import { RunFunction } from '../Computation';
 
 export function observe<T>(name: string,

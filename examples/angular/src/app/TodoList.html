@@ -1,0 +1,6 @@
+<ul class="todo-list">
+  <li
+    *ngFor="let todo of todoService.visibleTodos"
+    class="todo-item"
+    [todo]="todo"></li>
+</ul>

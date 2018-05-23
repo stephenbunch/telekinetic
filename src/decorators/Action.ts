@@ -1,5 +1,5 @@
 import { transaction } from '../transaction';
-import { untracked } from '../computation';
+import { untracked } from '../Computation';
 
 const __cache = Symbol('cache');
 
