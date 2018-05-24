@@ -1,18 +1,18 @@
 import { _Bound } from './decorators/_Bound';
+import { autorun, Autorun } from './autorun';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
-import { State } from './State';
-import { Uri } from './Uri';
-import { autorun, Autorun } from './autorun';
 import { untracked } from './Computation';
+import { Uri } from './Uri';
+import { ViewState } from './ViewState';
 
 export class Value<T> implements Input<T> {
   private readonly dependency: Dependency;
   private value: T;
-  private state: State | undefined;
+  private state: ViewState | undefined;
   private autoSyncFromState: Autorun | undefined;
 
-  static viewState: State | undefined;
+  static globalState: ViewState | undefined;
 
   constructor(uri: Uri, initialValue: T, persist: boolean) {
     this.value = initialValue;
@@ -43,9 +43,9 @@ export class Value<T> implements Input<T> {
 
   @_Bound()
   private onHot() {
-    if (Value.viewState) {
+    if (Value.globalState) {
       untracked(() => {
-        this.state = Value.viewState!.findOrCreate(this.uri);
+        this.state = Value.globalState!.findOrCreate(this.uri);
         if (this.state.hasValue()) {
           this.value = this.state.get();
         } else {

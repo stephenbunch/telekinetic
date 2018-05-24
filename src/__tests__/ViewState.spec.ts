@@ -1,10 +1,10 @@
 import { observe } from '../rxjs/observe';
-import { State } from '../State';
 import { Uri, NameSegment, IndexSegment } from '../Uri';
+import { ViewState } from '../ViewState';
 
-describe.only('State', () => {
+describe('ViewState', () => {
   it('should set a value', () => {
-    const state = new State();
+    const state = new ViewState();
     const foo = state.findOrCreate(Uri.create('foo'));
     foo.set('hello');
     expect(state.get()).toEqual({
@@ -15,7 +15,7 @@ describe.only('State', () => {
   });
 
   it('should set a nested value', () => {
-    const state = new State();
+    const state = new ViewState();
     const bar = state.findOrCreate(Uri.create('foo', 'bar'));
     const baz = state.findOrCreate(Uri.create('foo', 'baz'));
     bar.set('hello');
@@ -37,7 +37,7 @@ describe.only('State', () => {
   });
 
   it('should find existing state node', () => {
-    const state = new State();
+    const state = new ViewState();
     state.set({ foo: { bar: 'hello', baz: 'world' } });
     expect(state.get()).toEqual({
       foo: {
@@ -62,7 +62,7 @@ describe.only('State', () => {
   });
 
   it('should find existing items in an array', () => {
-    const state = new State();
+    const state = new ViewState();
     state.set({ foo: [1, 2, 3] });
     const a = state.findOrCreate(Uri.create('foo', 0));
     const b = state.findOrCreate(Uri.create('foo', 1));
@@ -76,7 +76,7 @@ describe.only('State', () => {
   });
 
   it('should be observable', () => {
-    const state = new State();
+    const state = new ViewState();
     const next = jest.fn();
     const sub = observe('state', () => state.get()).subscribe(next);
     expect(next).toHaveBeenCalledWith(undefined);
@@ -100,7 +100,7 @@ describe.only('State', () => {
   });
 
   it('should not have a value upon creation', () => {
-    const state = new State();
+    const state = new ViewState();
     const foo = state.findOrCreate(Uri.create('foo'));
     expect(foo.hasValue()).toBe(false);
   });

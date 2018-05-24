@@ -1,7 +1,7 @@
 import { observe } from '../rxjs/observe';
-import { Value } from '../Value';
 import { Uri } from '../Uri';
-import { State } from '../State';
+import { Value } from '../Value';
+import { ViewState } from '../ViewState';
 
 it('should register a dependency', () => {
   const val = new Value(Uri.create('val'), 1, false);
@@ -17,8 +17,8 @@ it('should register a dependency', () => {
 
 it('should persist value in view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new State();
-  Value.viewState = state;
+  const state = new ViewState();
+  Value.globalState = state;
   const next = jest.fn();
   const sub = observe('main', () => foo.get()).subscribe(next);
   expect(next).toHaveBeenCalledWith(1);
@@ -32,14 +32,14 @@ it('should persist value in view state', () => {
   });
   expect(next).toHaveBeenCalledTimes(2);
   sub.unsubscribe();
-  Value.viewState = undefined;
+  Value.globalState = undefined;
 });
 
 it('should restore value from view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new State();
+  const state = new ViewState();
   state.findOrCreate(foo.uri).set(42);
-  Value.viewState = state;
+  Value.globalState = state;
   const next = jest.fn();
   const sub = observe('main', () => foo.get()).subscribe(next);
   expect(next).toHaveBeenCalledWith(42);
@@ -48,13 +48,13 @@ it('should restore value from view state', () => {
   });
   expect(next).toHaveBeenCalledTimes(1);
   sub.unsubscribe();
-  Value.viewState = undefined;
+  Value.globalState = undefined;
 });
 
 it('should sync value from view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new State();
-  Value.viewState = state;
+  const state = new ViewState();
+  Value.globalState = state;
   const next = jest.fn();
   const sub = observe('main', () => foo.get()).subscribe(next);
   expect(next).toHaveBeenCalledWith(1);
@@ -68,5 +68,5 @@ it('should sync value from view state', () => {
   });
   expect(next).toHaveBeenCalledTimes(2);
   sub.unsubscribe();
-  Value.viewState = undefined;
+  Value.globalState = undefined;
 });
