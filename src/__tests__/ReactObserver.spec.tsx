@@ -3,14 +3,14 @@ import { mount } from 'enzyme';
 import { Observable } from '../decorators/Observable';
 import * as React from 'react';
 import { Computed } from '../decorators/Computed';
-import { Observer } from '../decorators/Observer';
+import { ReactObserverHoc } from '../decorators/ReactObserverHoc';
 
 interface Props {
   other: number
   end: string
 }
 
-@Observer()
+@ReactObserverHoc()
 class TestComponent extends React.Component<Props> {
 
   @Observable()
@@ -29,7 +29,7 @@ class TestComponent extends React.Component<Props> {
   }
 }
 
-describe('Observer', () => {
+describe('ReactObserverHoc', () => {
   it('should automatically update when observable changes', () => {
     const wrapper = mount(<TestComponent end="!" other={0} />);
     const inst = wrapper.instance() as TestComponent;

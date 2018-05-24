@@ -1,6 +1,5 @@
 export * from './autorun';
 export * from './Collection';
-export * from './CollectionBrush';
 export * from './CollectionObserver';
 export {
   ComputationError,
@@ -14,7 +13,7 @@ export * from './ComputedValue';
 export * from './decorators/Action';
 export * from './decorators/Computed';
 export * from './decorators/Observable';
-export * from './decorators/Observer';
+export * from './decorators/ReactObserverHoc';
 export * from './Dependency';
 export * from './Disposable';
 export * from './Event';

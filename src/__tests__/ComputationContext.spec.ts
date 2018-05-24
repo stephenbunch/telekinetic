@@ -1,4 +1,4 @@
-import { AsyncObserver } from './utils/AsyncObserver';
+import { AsyncObserver } from './testing/AsyncObserver';
 import { Dependency } from '../Dependency';
 import { DisposedError } from '../Disposable';
 import { observe, observeAsync } from '../rxjs/observe';

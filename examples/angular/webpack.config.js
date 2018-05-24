@@ -30,13 +30,13 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.ts', '.tsx', '.js']
+    extensions: ['.ts', '.js']
   },
 
   module: {
     rules: [
       {
-        test: /\.tsx?$/,
+        test: /\.ts$/,
         use: [
           {
             loader: 'awesome-typescript-loader',

@@ -1,4 +1,4 @@
-import { AsyncObserver } from './utils/AsyncObserver';
+import { AsyncObserver } from './testing/AsyncObserver';
 import { ComputedValue } from '../ComputedValue';
 import { observe, observeAsync } from '../rxjs/observe';
 import { transaction } from '../transaction';

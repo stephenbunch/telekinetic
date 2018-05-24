@@ -1,12 +1,14 @@
-import { Action } from './decorators/Action';
-import { Collection } from './Collection';
-import { CollectionObserver } from './CollectionObserver';
-import { Computed } from './decorators/Computed';
-import { ComputedMap } from './ComputedMap';
-import { ObservableMap } from './ObservableMap';
-import { ObservableSet } from './ObservableSet';
-import { Observer } from './decorators/Observer';
-import { Uri } from './Uri';
+import {
+  Action,
+  Collection,
+  CollectionObserver,
+  Computed,
+  ComputedMap,
+  ObservableMap,
+  ObservableSet,
+  ReactObserverHoc,
+  Uri,
+} from '../../';
 import * as React from 'react';
 
 type ItemRenderer<TItem> = (item: TItem) => React.ReactNode;
@@ -18,7 +20,7 @@ export interface CollectionBrushProps<TKey, TItem, TSortKey = any> {
   descending?: boolean;
 }
 
-@Observer()
+@ReactObserverHoc()
 export class CollectionBrush<TKey, TItem, TSortKey = any>
   extends React.Component<CollectionBrushProps<TKey, TItem, TSortKey>> {
 

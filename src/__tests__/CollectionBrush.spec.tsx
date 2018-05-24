@@ -1,15 +1,15 @@
 import { Collection } from '../Collection';
-import { CollectionBrush } from '../CollectionBrush';
+import { CollectionBrush } from './testing/CollectionBrush';
 import { mount } from 'enzyme';
 import { Observable } from '../decorators/Observable';
-import { Observer } from '../decorators/Observer';
+import { ReactObserverHoc } from '../decorators/ReactObserverHoc';
 import * as React from 'react';
 
 interface Item { message: string, count: number }
 
 class TestBrush extends CollectionBrush<number, Item, string> { }
 
-@Observer()
+@ReactObserverHoc()
 class TestComponent extends React.Component {
   data = new Collection<number, Item>();
 

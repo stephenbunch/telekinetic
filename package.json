@@ -72,7 +72,6 @@
     }
   },
   "peerDependencies": {
-    "react": "^16.x",
     "rxjs": "^6.x"
   }
 }

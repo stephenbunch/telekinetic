@@ -1,9 +1,9 @@
-import { AsyncObserver } from './utils/AsyncObserver';
+import { AsyncObserver } from './testing/AsyncObserver';
 import { autorun } from '../autorun';
-import { Deferred } from './utils/Deferred';
+import { Deferred } from './testing/Deferred';
 import { Dependency, CircularDependencyError } from '../Dependency';
 import { observe, observeAsync } from '../rxjs/observe';
-import { sleep } from './utils/sleep';
+import { sleep } from './testing/sleep';
 import { Uri } from '../Uri';
 
 it('should run again when a dependency changes', () => {
