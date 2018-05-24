@@ -4,13 +4,13 @@ import { _OrderedSet } from './_OrderedSet';
 import { Uri, UriSegmentKind } from './Uri';
 import { Action } from './decorators/Action';
 
-export class ViewState {
-  private parent: ViewState | undefined;
+export class State {
+  private parent: State | undefined;
 
   @Observable({ persist: false })
   private value: StateValue | undefined;
 
-  constructor(parent?: ViewState) {
+  constructor(parent?: State) {
     this.parent = parent;
   }
 
@@ -40,8 +40,8 @@ export class ViewState {
   }
 
   @Action()
-  findOrCreate(uri: Uri): ViewState {
-    let state = this as ViewState;
+  findOrCreate(uri: Uri): State {
+    let state = this as State;
     for (let i = 0; i < uri.segments.length; i++) {
       const segment = uri.segments[i];
       if (segment.kind === UriSegmentKind.Name) {
@@ -69,22 +69,22 @@ export class ViewState {
 }
 
 interface StateValue {
-  readonly owner: ViewState;
+  readonly owner: State;
 
   get(): any;
   set(value: any): void;
 
-  removeChild?(state: ViewState): void;
-  findOrCreateChild?(key: any): ViewState;
+  removeChild?(state: State): void;
+  findOrCreateChild?(key: any): State;
 }
 
 class StateLiteral implements StateValue {
-  readonly owner: ViewState;
+  readonly owner: State;
 
   @Observable({ persist: false })
   private value: any;
 
-  constructor(owner: ViewState) {
+  constructor(owner: State) {
     this.owner = owner;
   }
 
@@ -98,16 +98,16 @@ class StateLiteral implements StateValue {
 }
 
 class StateObject implements StateValue {
-  readonly owner: ViewState;
+  readonly owner: State;
 
-  private readonly children = new _OrderedSet<ViewState>();
+  private readonly children = new _OrderedSet<State>();
   private readonly keys = new _OrderedSet<string>();
 
-  constructor(owner: ViewState) {
+  constructor(owner: State) {
     this.owner = owner;
   }
 
-  removeChild(state: ViewState) {
+  removeChild(state: State) {
     if (this.children.has(state)) {
       const index = this.children.indexOf(state);
       this.children.delete(state);
@@ -120,7 +120,7 @@ class StateObject implements StateValue {
       const index = this.keys.indexOf(key);
       return this.children.get(index)!;
     } else {
-      const state = new ViewState(this.owner);
+      const state = new State(this.owner);
       this.children.add(state);
       this.keys.add(key);
       return state;
@@ -147,25 +147,25 @@ class StateObject implements StateValue {
 }
 
 class StateArray implements StateValue {
-  readonly owner: ViewState;
+  readonly owner: State;
 
-  private readonly children = new _OrderedSet<ViewState>();
+  private readonly children = new _OrderedSet<State>();
 
-  constructor(owner: ViewState) {
+  constructor(owner: State) {
     this.owner = owner;
   }
 
-  findOrCreateChild(index: number): ViewState {
+  findOrCreateChild(index: number): State {
     if (index < this.children.size) {
       return this.children.get(index)!;
     } else {
-      const state = new ViewState(this.owner);
+      const state = new State(this.owner);
       this.children.add(state);
       return state;
     }
   }
 
-  removeChild(state: ViewState) {
+  removeChild(state: State) {
     this.children.delete(state);
   }
 
@@ -173,7 +173,7 @@ class StateArray implements StateValue {
     for (let i = 0; i < arr.length; i++) {
       let state = this.children.get(i);
       if (!state) {
-        state = new ViewState(this.owner);
+        state = new State(this.owner);
         this.children.add(state);
       }
       state.set(arr[i]);

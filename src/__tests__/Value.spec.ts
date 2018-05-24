@@ -1,7 +1,7 @@
 import { observe } from '../rxjs/observe';
+import { State } from '../State';
 import { Uri } from '../Uri';
 import { Value } from '../Value';
-import { ViewState } from '../ViewState';
 
 it('should register a dependency', () => {
   const val = new Value(Uri.create('val'), 1, false);
@@ -17,7 +17,7 @@ it('should register a dependency', () => {
 
 it('should persist value in view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new ViewState();
+  const state = new State();
   Value.globalState = state;
   const next = jest.fn();
   const sub = observe('main', () => foo.get()).subscribe(next);
@@ -37,7 +37,7 @@ it('should persist value in view state', () => {
 
 it('should restore value from view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new ViewState();
+  const state = new State();
   state.findOrCreate(foo.uri).set(42);
   Value.globalState = state;
   const next = jest.fn();
@@ -53,7 +53,7 @@ it('should restore value from view state', () => {
 
 it('should sync value from view state', () => {
   const foo = new Value(Uri.create('foo'), 1, true);
-  const state = new ViewState();
+  const state = new State();
   Value.globalState = state;
   const next = jest.fn();
   const sub = observe('main', () => foo.get()).subscribe(next);

@@ -2,17 +2,17 @@ import { _Bound } from './decorators/_Bound';
 import { autorun, Autorun } from './autorun';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
+import { State } from './State';
 import { untracked } from './Computation';
 import { Uri } from './Uri';
-import { ViewState } from './ViewState';
 
 export class Value<T> implements Input<T> {
   private readonly dependency: Dependency;
   private value: T;
-  private state: ViewState | undefined;
+  private state: State | undefined;
   private autoSyncFromState: Autorun | undefined;
 
-  static globalState: ViewState | undefined;
+  static globalState: State | undefined;
 
   constructor(uri: Uri, initialValue: T, persist: boolean) {
     this.value = initialValue;
