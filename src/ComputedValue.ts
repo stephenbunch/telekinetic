@@ -13,8 +13,6 @@ function dispose(value: any) {
 }
 
 export class ComputedValue<T> implements Input<T> {
-  readonly uri: Uri;
-
   private readonly producer: () => T;
   private readonly dependency: Dependency;
 
@@ -22,11 +20,14 @@ export class ComputedValue<T> implements Input<T> {
   private value: T | undefined;
 
   constructor(uri: Uri, producer: () => T) {
-    this.uri = uri;
     this.producer = producer;
     this.dependency = new Dependency(uri);
     this.dependency.onHot.addListener(this.onHot);
     this.dependency.onCold.addListener(this.onCold);
+  }
+
+  get uri() {
+    return this.dependency.uri;
   }
 
   get() {

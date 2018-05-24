@@ -11,7 +11,7 @@ describe('Uri', () => {
     const uri1 = Uri.instance(foo1);
     const uri2 = Uri.instance(foo2);
 
-    const flag = new Value(Uri.create('flag'), 1);
+    const flag = new Value(Uri.create('flag'), 1, false);
 
     let name1;
     let name2;

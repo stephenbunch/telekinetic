@@ -1,24 +1,30 @@
 import { _Bound } from './decorators/_Bound';
 import { Dependency } from './Dependency';
 import { Input } from './Input';
-import { Store } from './redux/Store';
+import { State } from './State';
 import { Uri } from './Uri';
+import { autorun, Autorun } from './autorun';
+import { untracked } from './Computation';
 
 export class Value<T> implements Input<T> {
-  readonly uri: Uri;
-
   private readonly dependency: Dependency;
   private value: T;
-  private store: Store | undefined;
+  private state: State | undefined;
+  private autoSyncFromState: Autorun | undefined;
 
-  static store: Store | undefined;
+  static viewState: State | undefined;
 
-  constructor(uri: Uri, initialValue: T) {
-    this.uri = uri;
+  constructor(uri: Uri, initialValue: T, persist: boolean) {
     this.value = initialValue;
     this.dependency = new Dependency(uri);
-    this.dependency.onHot.addListener(this.onHot);
-    this.dependency.onCold.addListener(this.onCold);
+    if (persist) {
+      this.dependency.onHot.addListener(this.onHot);
+      this.dependency.onCold.addListener(this.onCold);
+    }
+  }
+
+  get uri() {
+    return this.dependency.uri;
   }
 
   get() {
@@ -27,8 +33,9 @@ export class Value<T> implements Input<T> {
   }
 
   set(value: T) {
-    if (this.value !== value) {
-      const prevValue = this.value;
+    if (this.state) {
+      this.state.set(value);
+    } else if (this.value !== value) {
       this.value = value;
       this.dependency.changed();
     }
@@ -36,11 +43,33 @@ export class Value<T> implements Input<T> {
 
   @_Bound()
   private onHot() {
-    this.store = Value.store;
+    if (Value.viewState) {
+      untracked(() => {
+        this.state = Value.viewState!.findOrCreate(this.uri);
+        if (this.state.hasValue()) {
+          this.value = this.state.get();
+        } else {
+          this.state.set(this.value);
+        }
+      });
+      let firstRun = true;
+      this.autoSyncFromState = autorun(this.uri.toString(), () => {
+        if (this.state!.hasValue()) {
+          this.value = this.state!.get();
+          if (!firstRun) {
+            this.dependency.changed();
+          }
+        }
+        firstRun = false;
+      });
+    }
   }
 
   @_Bound()
   private onCold() {
-    this.store = undefined;
+    if (this.state) {
+      this.state = undefined;
+      this.autoSyncFromState!.dispose();
+    }
   }
 }

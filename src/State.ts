@@ -7,7 +7,7 @@ import { Action } from './decorators/Action';
 export class State {
   private parent: State | undefined;
 
-  @Observable()
+  @Observable({ persist: false })
   private value: StateValue | undefined;
 
   constructor(parent?: State) {
@@ -62,6 +62,10 @@ export class State {
   get() {
     return this.value && this.value.get();
   }
+
+  hasValue() {
+    return this.value !== undefined;
+  }
 }
 
 interface StateValue {
@@ -77,7 +81,7 @@ interface StateValue {
 class StateLiteral implements StateValue {
   readonly owner: State;
 
-  @Observable()
+  @Observable({ persist: false })
   private value: any;
 
   constructor(owner: State) {

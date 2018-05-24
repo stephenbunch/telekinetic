@@ -37,6 +37,9 @@ export class Dependency {
   }
 
   depend(): void {
+    if (this.uri.activate) {
+      this.uri.activate();
+    }
     const computation = getCurrentComputation();
     if (computation && computation.isAlive) {
       const context = computation.context!;

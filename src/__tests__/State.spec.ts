@@ -98,4 +98,10 @@ describe.only('State', () => {
     });
     sub.unsubscribe();
   });
+
+  it('should not have a value upon creation', () => {
+    const state = new State();
+    const foo = state.findOrCreate(Uri.create('foo'));
+    expect(foo.hasValue()).toBe(false);
+  });
 });
