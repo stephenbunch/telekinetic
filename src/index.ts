@@ -23,6 +23,7 @@ export * from './ObservableMap';
 export * from './ObservableProxy';
 export * from './ObservableSet';
 export * from './rxjs/observe';
+export * from './State';
 export * from './transaction';
-export * from './Value';
 export * from './Uri';
+export * from './Value';
