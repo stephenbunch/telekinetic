@@ -9,7 +9,6 @@
 - Add visibleRange prop to collection brush.
 - Remove observable set. Replace with Input.
 - Refactor ObservableMap to use Value.
-- Add StateTrace object for tracing top-level state changes.
 - Add support for serializing current state.
 - Add support for hot reload using serialized state.
 - Add documentation, rollup bundle, code coverage, and blog post with codepen samples.
