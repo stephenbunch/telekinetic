@@ -36,35 +36,30 @@ export class IndexSegment {
 }
 
 const urisByInstance = new WeakMap<object, InstanceUri>();
-
-const instanceCountByClass = new WeakMap<Function, number>();
-const instancesByClass = new WeakMap<Function, Array<any>>();
+const hotInstancesByClass = new WeakMap<Function, Array<any>>();
 
 export class InstanceSegment implements NameSegment {
   readonly kind = UriSegmentKind.Name
 
   private readonly instance: object;
   private readonly className: string;
-  private readonly id: number;
 
-  private isAlive = false;
+  private isHot = false;
   private contexts = new Set<ComputationContextClass>();
 
   constructor(instance: object) {
     this.instance = instance;
     this.className = getClassName(instance.constructor);
-    this.id = instanceCountByClass.get(instance.constructor) || 0;
-    instanceCountByClass.set(instance.constructor, this.id + 1);
   }
 
   get name(): string {
-    if (this.isAlive) {
-      const instances = instancesByClass.get(this.instance.constructor)!;
-      const index = instances.indexOf(this.instance);
-      return `#${this.className}_${index.toString()}`;
-    } else {
-      return `!${this.className}_${this.id}`;
+    if (!this.isHot) {
+      throw new Error(
+        'Uri must be alive to get the name of an instance segment.');
     }
+    const instances = hotInstancesByClass.get(this.instance.constructor)!;
+    const index = instances.indexOf(this.instance);
+    return `#${this.className}_${index.toString()}`;
   }
 
   activate() {
@@ -75,12 +70,12 @@ export class InstanceSegment implements NameSegment {
         this.contexts.add(context);
         context.onDestroy.addListener(this.onContextDestroy);
       }
-      if (!this.isAlive) {
-        this.isAlive = true;
-        if (!instancesByClass.has(this.instance.constructor)) {
-          instancesByClass.set(this.instance.constructor, []);
+      if (!this.isHot) {
+        this.isHot = true;
+        if (!hotInstancesByClass.has(this.instance.constructor)) {
+          hotInstancesByClass.set(this.instance.constructor, []);
         }
-        const instances = instancesByClass.get(this.instance.constructor)!;
+        const instances = hotInstancesByClass.get(this.instance.constructor)!;
         instances.push(this.instance);
       }
     }
@@ -96,9 +91,9 @@ export class InstanceSegment implements NameSegment {
     this.contexts.delete(context);
     enqueue(() => {
       if (this.contexts.size === 0) {
-        if (this.isAlive) {
-          this.isAlive = false;
-          const instances = instancesByClass.get(this.instance.constructor)!;
+        if (this.isHot) {
+          this.isHot = false;
+          const instances = hotInstancesByClass.get(this.instance.constructor)!;
           const index = instances.indexOf(this.instance);
           if (index > -1) {
             instances.splice(index, 1);

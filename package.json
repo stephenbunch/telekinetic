@@ -79,5 +79,9 @@
   },
   "peerDependencies": {
     "rxjs": "^6.x"
+  },
+  "dependencies": {
+    "@types/uuid": "^3.4.3",
+    "uuid": "^3.2.1"
   }
 }
