@@ -3,7 +3,6 @@
     "declaration": true,
     "declarationDir": "./lib",
     "experimentalDecorators": true,
-    "jsx": "react",
     "module": "es6",
     "moduleResolution": "node",
     "noImplicitReturns": true,
@@ -16,5 +15,8 @@
   },
   "include": [
     "src/**/*"
+  ],
+  "exclude": [
+    "src/__tests__/**/*"
   ]
 }

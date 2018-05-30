@@ -69,6 +69,11 @@
     "setupTestFrameworkScriptFile": "<rootDir>/test-setup.js",
     "transform": {
       "\\.(ts|tsx)$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    },
+    "globals": {
+      "ts-jest": {
+        "tsConfigFile": "tsconfig.jest.json"
+      }
     }
   },
   "peerDependencies": {
