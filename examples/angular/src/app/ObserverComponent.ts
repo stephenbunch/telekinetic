@@ -15,7 +15,7 @@ export class ObserverComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit() {
-    this.autorun = autorun('app-root', () => {
+    this.autorun = autorun(this.constructor.name, () => {
       this.changeDetector.detectChanges();
     });
   }
