@@ -1,6 +1,6 @@
 import { Computation, ComputationClass, RunFunction } from './Computation';
 import { Dependency } from './Dependency';
-import { Disposable, DisposedError } from './Disposable';
+import { DisposedError } from './Disposable';
 import { Event, EventController } from './Event';
 import { _FrozenSet } from './_FrozenSet';
 

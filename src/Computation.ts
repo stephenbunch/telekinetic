@@ -6,8 +6,7 @@ import {
 import { DisposedError } from './Disposable';
 import { _FrozenSet } from './_FrozenSet';
 import { Logger } from './Logger';
-import { _OrderedSet } from './_OrderedSet';
-import { transaction, enqueue } from './transaction';
+import { enqueue } from './transaction';
 
 let currentComputation: Computation | null = null;
 let computationStack = new Set<Computation>();

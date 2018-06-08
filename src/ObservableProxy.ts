@@ -10,13 +10,13 @@ class ObservableProxyHandler<T extends KeyedObject> implements ProxyHandler<T> {
 
   get(target: T, key: PropertyKey, receiver: any): any {
     this.dependencies.depend(key);
-    return target[key];
+    return target[key as string];
   }
 
   set(target: T, key: PropertyKey, value: any, receiver: any): boolean {
     // Only update if the value is different.
-    if (value !== target[key]) {
-      target[key] = value;
+    if (value !== target[key as string]) {
+      target[key as string] = value;
       this.dependencies.changed(key);
     }
     return true;
