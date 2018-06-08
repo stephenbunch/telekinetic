@@ -1,5 +1,4 @@
 import { ComputedValue } from './ComputedValue';
-import { Dependency } from './Dependency';
 import { ObservableMap } from './ObservableMap';
 import { transaction } from './transaction';
 import { untracked } from './Computation';
